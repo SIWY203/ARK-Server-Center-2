@@ -4,6 +4,8 @@ using static PathManager;
 
 public class Program
 {
+    public static int port = 7777;
+
     public static void Main(string[] args)
     {
         Console.Title = "Ark Server Center";
@@ -12,12 +14,17 @@ public class Program
         //  Main Menu
         // ------------------------------
         bool repeat = true;
+        
+
+        // Ustalenie portu, klastra etc.
+
+
         while (repeat)
         {
             Console.Clear();
             LoadPathsFromFile();
-            SafetyChecker.ExistFolders(logging:false);
-            bool isSafeNow = SafetyChecker.IsSafeNow();
+            SafetyChecker.CheckFolders();
+            bool isSafeNow = SafetyChecker.IsSafeNow(port);
 
             Console.WriteLine(
                 $"\n" +
@@ -78,7 +85,7 @@ public class Program
 
     private static void BackupMenu()
     {
-        bool isSafeNow = SafetyChecker.IsSafeNow();
+        bool isSafeNow = SafetyChecker.IsSafeNow(port);
         bool repeat = true;
         while (repeat)
         {
@@ -134,7 +141,7 @@ public class Program
 
     private static void ServerConfigMenu()
     {
-        bool isSafeNow = SafetyChecker.IsSafeNow();
+        bool isSafeNow = SafetyChecker.IsSafeNow(port);
         bool repeat = true;
         while (repeat)
         {
