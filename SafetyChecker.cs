@@ -1,28 +1,25 @@
 ﻿namespace Ark_Server_Center;
-using System.Diagnostics; // Process
+using System.Net.NetworkInformation;
 using static MessageManager;
 using static PathManager;
 
 
 public static class SafetyChecker
 {
-    public static bool IsServerRunning(bool logging = false)
+    public static bool IsServerRunningOnPort(int port)
     {
-        // ArkAscendedServer
-        Process[] serverProcess = Process.GetProcessesByName("ArkAscendedServer");
-        if (serverProcess.Length > 0 )
+        var properties = IPGlobalProperties.GetIPGlobalProperties();
+        var udpListeners = properties.GetActiveUdpListeners();
+
+        foreach (var listener in udpListeners)
         {
-            if (logging) Warn("Serwer jest włączony.");
-            return true;
+            if (listener.Port == port) return true;
         }
-            
-        else
-        {
-            if (logging) Success("Serwer jest wyłączony.");
-            return false;
-        }
+
+        return false;
     }
 
+    // do refaktoryzacji
     public static bool ExistGameSavePath(bool logging = false)
     {
         if (PathTo_Saved == string.Empty)
@@ -33,6 +30,7 @@ public static class SafetyChecker
         return true;
     }
 
+    // do refaktoryzacji
     public static bool ExistBackupPath(bool logging = false)
     {
 
@@ -44,32 +42,44 @@ public static class SafetyChecker
         return true;
     }
 
-    public static bool IsSafeNow()
+    public static bool IsSafeNow(int port)
     {
-        bool isRunning = IsServerRunning(true);
+        bool isRunning = IsServerRunningOnPort(port);
+        if (isRunning) Warn("Serwer jest włączony!");
+        else Success("Serwer jest wyłączony.");
+
         bool hasGameSavePath = ExistGameSavePath(true);
         bool hasBackupPath = ExistBackupPath(true);
-        // Log($"Is safe now?: { !isRunning && hasGameSavePath && hasBackupPath}");
         return !isRunning && hasGameSavePath && hasBackupPath;
     }
 
-    public static bool ExistFolders(bool logging = true)
+    public static (bool HasSaved, bool HasSaves) CheckFolders()
     {
-        if (!Directory.Exists(Path.Combine(PathTo_Saved, "Saved")))
-        {   
-            Console.Clear();
-            if (logging) Warn("Nie wykryto folderu 'Saved'!\nUpewnij się, czy ścieżka jest prawidłowa.");
-            return false;
-        }
+        bool hasSaved = Directory.Exists(Path.Combine(PathTo_Saved, "Saved"));
+        bool hasSaves = Directory.Exists(Path.Combine(PathTo_SAVES, "SAVES"));
 
-        if (!Directory.Exists(Path.Combine(PathTo_SAVES, "SAVES")))
-        {
-            Console.Clear();
-            if (logging) Warn("Nie wykryto folderu na backupy!\nUpewnij się, czy ścieżka jest prawidłowa.");
-            return false;
-        }
-            
-        return true;
+        return (hasSaved, hasSaves);
+
     }
+
+    public static bool CheckFoldersAndLog()
+    {
+        var (hasSaved, hasSaves) = CheckFolders();
+        if (hasSaved && hasSaves) return true;
+
+        Console.Clear();
+        if (!hasSaved)
+        {
+            Warn("Nie wykryto folderu 'Saved'!\n" +
+                 "Upewnij się, czy ścieżka jest prawidłowa.");
+        }
+        if (!hasSaves)
+        {
+            Warn("Nie wykryto folderu na backupy!\n" +
+                 "Upewnij się, czy ścieżka jest prawidłowa.");
+        }
+        return false;
+    }
+
 
 }
