@@ -42,6 +42,11 @@ public static class SafetyChecker
         return true;
     }
 
+    public static bool CheckPathToSaved()
+    {
+        return true;
+    }
+
     public static bool IsSafeNow(int port)
     {
         bool isRunning = IsServerRunningOnPort(port);
@@ -53,18 +58,17 @@ public static class SafetyChecker
         return !isRunning && hasGameSavePath && hasBackupPath;
     }
 
-    public static (bool HasSaved, bool HasSaves) CheckFolders()
+    public static (bool HasSaved, bool HasSaves) CheckFoldersExistence()
     {
         bool hasSaved = Directory.Exists(Path.Combine(PathTo_Saved, "Saved"));
         bool hasSaves = Directory.Exists(Path.Combine(PathTo_SAVES, "SAVES"));
 
         return (hasSaved, hasSaves);
-
     }
 
-    public static bool CheckFoldersAndLog()
+    public static bool CheckFoldersExistenceAndLog()
     {
-        var (hasSaved, hasSaves) = CheckFolders();
+        var (hasSaved, hasSaves) = CheckFoldersExistence();
         if (hasSaved && hasSaves) return true;
 
         Console.Clear();

@@ -23,7 +23,7 @@ public class Program
         {
             Console.Clear();
             LoadPathsFromFile();
-            SafetyChecker.CheckFolders();
+            SafetyChecker.CheckFoldersExistence();
             bool isSafeNow = SafetyChecker.IsSafeNow(port);
 
             Console.WriteLine(

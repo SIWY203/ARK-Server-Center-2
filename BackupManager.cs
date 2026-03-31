@@ -11,7 +11,7 @@ public static class BackupManager
         string dirName = "Saved-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
         string backupDir = Path.Combine(PathTo_SAVES, "SAVES", dirName);
 
-        if (!SafetyChecker.CheckFoldersAndLog()) { End(); return; }
+        if (!SafetyChecker.CheckFoldersExistenceAndLog()) { End(); return; }
 
         Console.WriteLine("Tworzenie zapisu, poczekaj na potwierdzenie...");
         bool success = CopyDirectory(savedDir, backupDir);
@@ -28,7 +28,7 @@ public static class BackupManager
         string snapshotDir = Path.Combine(PathTo_SAVES, "SAVES", "#Snapshots", snapshotName);
         
 
-        if (!SafetyChecker.CheckFoldersAndLog()) { End(); return; }
+        if (!SafetyChecker.CheckFoldersExistenceAndLog()) { End(); return; }
 
         string latestBackupDir = GetLatestBackup(databaseDir);
         if (string.IsNullOrEmpty(latestBackupDir))
@@ -72,7 +72,7 @@ public static class BackupManager
         string snapshotDir = Path.Combine(PathTo_SAVES, "SAVES", "#Snapshots");
         Directory.CreateDirectory(snapshotDir);
 
-        if (!SafetyChecker.CheckFoldersAndLog()) { End(); return; }
+        if (!SafetyChecker.CheckFoldersExistenceAndLog()) { End(); return; }
 
         string latest = GetLatestSnapshot(snapshotDir);
         if (string.IsNullOrEmpty(latest))
@@ -111,7 +111,7 @@ public static class BackupManager
     // ------------------------------
     public static bool CopyDirectory(string sourceDir, string targetDir)
     {
-        if (!SafetyChecker.CheckFoldersAndLog())
+        if (!SafetyChecker.CheckFoldersExistenceAndLog())
         {
             Console.Clear();
             Error("Nieprawidłowa ścieżka, niepowodzenie!");
@@ -189,7 +189,7 @@ public static class BackupManager
 
     private static string GetLatestFromDir(string operation, string path)
     {
-        if (!SafetyChecker.CheckFoldersAndLog()) return string.Empty;
+        if (!SafetyChecker.CheckFoldersExistenceAndLog()) return string.Empty;
 
         // ignorowanie folderu "#Snapshots"
         string[] entries = Directory.GetDirectories(path)
