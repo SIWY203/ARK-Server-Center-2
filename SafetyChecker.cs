@@ -19,27 +19,29 @@ public static class SafetyChecker
         return false;
     }
 
-    // do refaktoryzacji
-    public static bool ExistGameSavePath(bool logging = false)
+    public static (bool IsSetSaved, bool IsSetSaves) ArePathsSet()
     {
-        if (PathTo_Saved == string.Empty)
-        {
-            if (logging) Warn("Nie ustawiono ścieżki do 'Saved'.");
-            return false;
-        }
-        return true;
+        bool isSetSavedPath = !string.IsNullOrWhiteSpace(PathTo_Saved);
+        bool isSetSavesPath = !string.IsNullOrWhiteSpace(PathTo_SAVES);
+
+        return (isSetSavedPath, isSetSavesPath);
     }
 
-    // do refaktoryzacji
-    public static bool ExistBackupPath(bool logging = false)
+    public static bool ArePathsSetAndLog()
     {
+        var (isSetSavedPath, isSetSavesPath) = ArePathsSet();
+        if (isSetSavedPath && isSetSavesPath) return true;
 
-        if (PathTo_SAVES == string.Empty)
+        Console.Clear();
+        if (!isSetSavedPath)
         {
-            if (logging) Warn("Nie ustawiono ścieżki do backupów.");
-            return false;
+            Warn("Nie ustalono ścieżki do 'Saved'!");
         }
-        return true;
+        if (!isSetSavesPath)
+        {
+            Warn("Nie ustalono ścieżki do backupów!");
+        }
+        return false;
     }
 
     public static bool CheckPathToSaved()
@@ -53,9 +55,8 @@ public static class SafetyChecker
         if (isRunning) Warn("Serwer jest włączony!");
         else Success("Serwer jest wyłączony.");
 
-        bool hasGameSavePath = ExistGameSavePath(true);
-        bool hasBackupPath = ExistBackupPath(true);
-        return !isRunning && hasGameSavePath && hasBackupPath;
+        bool arePathsSet = ArePathsSetAndLog();
+        return !isRunning && arePathsSet;
     }
 
     public static (bool HasSaved, bool HasSaves) CheckFoldersExistence()
