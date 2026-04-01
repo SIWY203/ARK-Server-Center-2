@@ -8,8 +8,6 @@ public static class PathManager
     public static string PathTo_SAVES { get; private set; } = string.Empty;
     public static string PathConfigFile { get; private set; } = "path_config.txt";
 
-    private static string Normalize(string path)
-        => string.IsNullOrWhiteSpace(path) ? string.Empty : Path.GetFullPath(path.Trim().Replace("\"", ""));
 
     public static void LoadPathsFromFile()
     {
