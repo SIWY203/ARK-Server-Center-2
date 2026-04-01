@@ -10,20 +10,19 @@ public class Program
     {
         Console.Title = "Ark Server Center";
 
+
+        // Ustalenie portu, klastra etc.
+        StartupMenu();
+
+
         // ------------------------------
         //  Main Menu
         // ------------------------------
         bool repeat = true;
-        
-
-        // Ustalenie portu, klastra etc.
-
-
         while (repeat)
         {
             Console.Clear();
             LoadPathsFromFile();
-            SafetyChecker.CheckFoldersExistence();
             bool isSafeNow = SafetyChecker.IsSafeNow(port);
 
             Console.WriteLine(
@@ -73,6 +72,78 @@ public class Program
                     Error("Nieprawidłowy wybór!");
                     End();
                     continue;
+            }
+        }
+    }
+
+
+
+    private static void StartupMenu()
+    {
+        // 1. Przykładowe dane (docelowo dane z dysku)
+        List<ArkCluster> clusters = new()
+        {
+            new ArkCluster("Cebula", new List<ClusterServer>
+            {
+                new ClusterServer("TheIsland", 7777),
+                new ClusterServer("Ragnarok", 7779)
+            }),
+
+            new ArkCluster("Pomidor", new List<ClusterServer>
+            {
+                new ClusterServer("Ragnarok", 7781)
+            })
+        };
+
+
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("========= ARK SERVER CENTER =========");
+            Console.WriteLine("Wybierz klaster do zarządzania:\n");
+
+            for (int i = 0; i < clusters.Count; i++)
+            {
+                Console.WriteLine($"[{i+1}] Klaster: {clusters[i].Name} ({clusters[i].Servers.Count} serwerów)");
+            }
+            Console.WriteLine("[X] Wyjście");
+            Console.Write("\nWybierz: ");
+
+            string? input = Console.ReadLine()?.ToUpper();
+            if (input == "X") break;
+
+            if (int.TryParse(input, out int choice) && choice-1 >= 0 && choice-1 < clusters.Count)
+            {
+                ManageCluster(clusters[choice-1]);
+            }
+        }
+    }
+
+    private static void ManageCluster(ArkCluster cluster)
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine($"--- KLASTER: {cluster.Name} ---");
+
+            for (int i = 0; i < cluster.Servers.Count; i++)
+            {
+                var s = cluster.Servers[i];
+                string status = SafetyChecker.IsServerRunningOnPort(s.Port) ? "[ONLINE]" : "[OFFLINE]";
+                Console.WriteLine($"[{i+1}] {s.Map} (Port: {s.Port}) - {status}");
+            }
+            Console.WriteLine("[B] Powrót");
+            Console.Write("\nWybierz: ");
+
+            string? input = Console.ReadLine()?.ToUpper();
+            if (input == "B") break;
+
+            if (int.TryParse(input, out int choice) && choice-1 >= 0 && choice-1 < cluster.Servers.Count)
+            {
+                // Tutaj wchodzisz w menu konkretnego serwera (Start/Stop/Backup)
+                //OpenServerControl(cluster.Servers[choice]);
+                Console.WriteLine(cluster.Servers[choice-1].Map);
+                Console.ReadLine();
             }
         }
     }
