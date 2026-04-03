@@ -83,15 +83,15 @@ public class Program
         // 1. Przykładowe dane (docelowo dane z dysku)
         List<ArkCluster> clusters = new()
         {
-            new ArkCluster("Cebula", new List<ClusterServer>
+            new ArkCluster("Cebula", @"D:\Gry\ARK Saves\ARK Server Cebula\Cluster Data", new List<ClusterServer>
             {
-                new ClusterServer("TheIsland", 7777),
-                new ClusterServer("Ragnarok", 7779)
+                new ClusterServer("TheIsland", 7777, @"D:\Gry\ARK Saves\ARK Server Cebula\Ark TheIsland"),
+                new ClusterServer("Ragnarok", 7779, @"D:\Gry\ARK Saves\ARK Server Cebula\Ark Ragnarok")
             }),
 
-            new ArkCluster("Pomidor", new List<ClusterServer>
+            new ArkCluster("Pomidor", @"D:\Gry\ARK Saves\ARK Server Pomidor\Cluster Data", new List<ClusterServer>
             {
-                new ClusterServer("Ragnarok", 7781)
+                new ClusterServer("Ragnarok", 7781, @"D:\Gry\ARK Saves\ARK Server Pomidor\Ark Ragnarok")
             })
         };
 
