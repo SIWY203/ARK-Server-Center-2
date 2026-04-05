@@ -1,4 +1,6 @@
 ﻿namespace Ark_Server_Center;
+
+using System.Xml.Linq;
 using static MessageManager;
 
 
@@ -22,5 +24,14 @@ public class ClusterServer
         ClusterRootPath = clusterRootPath;
     }
 
+
+    public void ShowServerInfo()
+    {
+        Console.WriteLine($"\n=== Server Info ===");
+        Console.WriteLine($"\n");
+        Console.WriteLine($" -> Mapa: {Map} [Port: {Port}]");
+        Console.WriteLine($"    Folder: {ServerRootPath}");
+        
+    }
 
 }

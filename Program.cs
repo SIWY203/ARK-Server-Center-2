@@ -5,6 +5,8 @@ using static PathManager;
 public class Program
 {
     public static int port = 7777;
+    public static ArkCluster? activeCluster;
+    public static ClusterServer? activeServer;
 
     public static void Main(string[] args)
     {
@@ -12,7 +14,11 @@ public class Program
 
 
         // Ustalenie portu, klastra etc.
-        StartupMenu();
+        SelectCluster();
+        SelectClusterServer(activeCluster);
+        activeCluster?.ShowClusterInfo();
+        activeServer?.ShowServerInfo();
+        Console.ReadLine();
 
 
         // ------------------------------
@@ -78,7 +84,7 @@ public class Program
 
 
 
-    private static void StartupMenu()
+    private static void SelectCluster()
     {
         // 1. Przykładowe dane (docelowo dane z dysku)
         List<ArkCluster> clusters = new()
@@ -114,14 +120,23 @@ public class Program
 
             if (int.TryParse(input, out int choice) && choice-1 >= 0 && choice-1 < clusters.Count)
             {
-                ManageCluster(clusters[choice-1]);
+                activeCluster = clusters[choice-1];
+                break;
             }
         }
     }
 
-    private static void ManageCluster(ArkCluster cluster)
+    private static void SelectClusterServer(ArkCluster? cluster)
     {
-        while (true)
+        if (cluster == null)
+        {
+            Console.WriteLine("Nie wybrano klastra!");
+            Console.ReadLine();
+            return;
+        }
+
+        bool success = false;
+        while (!success)
         {
             Console.Clear();
             Console.WriteLine($"--- KLASTER: {cluster.Name} ---");
@@ -136,7 +151,7 @@ public class Program
             Console.Write("\nWybierz: ");
 
             string? input = Console.ReadLine()?.ToUpper();
-            if (input == "B") break;
+            if (input == "B") break;      
 
             if (int.TryParse(input, out int choice) && choice-1 >= 0 && choice-1 < cluster.Servers.Count)
             {
@@ -144,6 +159,9 @@ public class Program
                 //OpenServerControl(cluster.Servers[choice]);
                 Console.WriteLine(cluster.Servers[choice-1].Map);
                 Console.ReadLine();
+                ClusterServer server = cluster.Servers[choice - 1];
+                success = true;
+                activeServer = server;
             }
         }
     }
