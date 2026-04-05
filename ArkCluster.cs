@@ -41,5 +41,17 @@ public class ArkCluster
     }
 
 
+    public void ShowClusterInfo()
+    {
+        Console.WriteLine($"\n=== Klaster: {Name} ===");
+        if (Servers.Count == 0) Console.WriteLine(" (brak serwerów)");
+
+        foreach (var server in Servers)
+        {
+            Console.WriteLine($" -> Mapa: {server.Map} [Port: {server.Port}]");
+        }
+    }
+
+
 }
 
