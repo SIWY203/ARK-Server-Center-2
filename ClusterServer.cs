@@ -6,17 +6,20 @@ public class ClusterServer
 {
     public string Map { get; private set; }
     public int Port { get; private set; }
+    public string ClusterRootPath { get; private set; }
 
-    // składanie ścieżek z głównej ścieżki serwera
-    public string ServerRootPath { get; private set; }
+    // combining paths
+    public string ServerRootPath => Path.Combine(ClusterRootPath, Map, $"{Map}_{Port}");
     public string SavedPath => Path.Combine(ServerRootPath, "ShooterGame", "Saved");
-    public string BackupsPath => Path.Combine(ServerRootPath, "SAVES");
+    public string BackupsPath => Path.Combine(ClusterRootPath, "Backups", "Maps", $"{Map}_{Port}");
 
-    public ClusterServer(string map, int port, string serverRootPath)
+
+
+    public ClusterServer(string map, int port, string clusterRootPath)
     {
         Map = map;
         Port = port;
-        ServerRootPath = serverRootPath;
+        ClusterRootPath = clusterRootPath;
     }
 
 

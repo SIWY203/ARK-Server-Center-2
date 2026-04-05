@@ -6,15 +6,17 @@ using static MessageManager;
 public class ArkCluster
 {
     public string Name { get; private set; }
-    public string ClusterDataPath { get; private set; }
-    public string ClusterBackupsPath => Path.Combine(ClusterDataPath, "CLUSTER_BACKUP");
+    public string ClusterRootPath { get; private set; }
+    public string ClusterDataPath => Path.Combine(ClusterRootPath, "Cluster Data");
+    public string ClusterBackupsPath => Path.Combine(ClusterRootPath, "Backups", "Cluster Data");
     public List<ClusterServer> Servers { get; private set; } = new List<ClusterServer>();
     
 
-    public ArkCluster(string name, string clusterDataPath, List<ClusterServer>? servers = null)
+
+    public ArkCluster(string name, string clusterRootPath, List<ClusterServer>? servers = null)
     {
         Name = name;
-        ClusterDataPath = clusterDataPath;
+        ClusterRootPath = clusterRootPath;
         Servers = servers ?? new List<ClusterServer>(); // jeśli nie podano serwerów, nowa pusta lista
     }
 
@@ -48,7 +50,8 @@ public class ArkCluster
 
         foreach (var server in Servers)
         {
-            Console.WriteLine($" -> Mapa: {server.Map} [Port: {server.Port}]");
+            Console.WriteLine($"\n -> Mapa: {server.Map} [Port: {server.Port}]");
+            Console.WriteLine($"    Folder: {server.ServerRootPath}");
         }
     }
 
