@@ -1,17 +1,15 @@
 ﻿namespace Ark_Server_Center;
-
-using System.Xml.Linq;
 using static MessageManager;
 
 
 public class ClusterServer
 {
-    public string Map { get; private set; }
+    public string Map { get; private set; } = string.Empty;
     public int Port { get; private set; }
-    public string ClusterRootPath { get; private set; }
+    public string ClusterRootPath { get; private set; } = string.Empty;
 
     // combining paths
-    public string ServerRootPath => Path.Combine(ClusterRootPath, Map, $"{Map}_{Port}");
+    public string ServerRootPath => Path.Combine(ClusterRootPath, $"{Map}_{Port}");
     public string SavedPath => Path.Combine(ServerRootPath, "ShooterGame", "Saved");
     public string BackupsPath => Path.Combine(ClusterRootPath, "Backups", "Maps", $"{Map}_{Port}");
 
