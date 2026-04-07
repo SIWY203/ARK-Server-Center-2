@@ -1,23 +1,23 @@
 ﻿namespace Ark_Server_Center;
 using static MessageManager;
-using static PathManager;
 
 public class Program
 {
-    public static int port = 7777;
-    public static ArkCluster? ActiveCluster { get; private set; }
-    public static ClusterServer? ActiveServer { get; private set; }
-
     public static void Main(string[] args)
     {
         Console.Title = "Ark Server Center";
 
 
-        // Ustalenie portu, klastra etc.
-        SelectCluster();
-        SelectClusterServer(ActiveCluster);
-        ActiveCluster?.ShowClusterInfo();
-        ActiveServer?.ShowServerInfo();
+        ClusterManager.LoadClusters();
+
+
+        while (ClusterManager.ActiveCluster == null || ClusterManager.ActiveServer == null)
+        {
+            ClusterManager.RequireServerSelection();
+        }
+
+        // Session.ActiveCluster.ShowClusterInfo();
+        // Session.ActiveServer.ShowServerInfo();
         Console.ReadLine();
 
 
@@ -28,8 +28,7 @@ public class Program
         while (repeat)
         {
             Console.Clear();
-            LoadPathsFromFile();
-            bool isSafeNow = SafetyChecker.IsSafeNow(port);
+            bool isSafeNow = SafetyChecker.IsSafeNow(ClusterManager.ActiveServer.Port);
 
             Console.WriteLine(
                 $"\n" +
@@ -37,7 +36,8 @@ public class Program
                 $"[1] Backupy i przywracanie\n" +
                 $"[2] Konfiguracja serwera\n" +
                 $"[3] Ustawienia ścieżek\n" +
-                $"[4] Instrukcja\n" +
+                $"[4] Menu serwerów\n" + 
+                $"[5] Instrukcja\n" +  
                 $"[Q] Wyjście\n" +
                 $"\n" +
                 $"===============================\n"
@@ -51,20 +51,25 @@ public class Program
             {
                 case "1":
                     Console.Clear();
-                    BackupMenu();
+                    BackupMenu(ClusterManager.ActiveServer);
                     continue;
 
                 case "2":
                     Console.Clear();
-                    ServerConfigMenu();
+                    ServerConfigMenu(ClusterManager.ActiveServer);
                     continue;
 
                 case "3":
                     Console.Clear();
-                    PathDetails();
+                    Warn("comming soon..."); End();
                     continue;
 
                 case "4":
+                    Console.Clear();
+                    ClusterManager.SelectCluster();
+                    continue;
+
+                case "5":
                     Console.Clear();
                     Instruction();
                     continue;
@@ -84,97 +89,13 @@ public class Program
 
 
 
-    private static void SelectCluster()
-    {
-        // 1. Przykładowe dane (docelowo dane z dysku)
-        List<ArkCluster> clusters = new()
-        {
-            new ArkCluster("Cebula", @"D:\Gry\ARK Saves\ARK Server Cebula\Cluster Data", new List<ClusterServer>
-            {
-                new ClusterServer("TheIsland", 7777, @"D:\Gry\ARK Saves\ARK Server Cebula\Ark TheIsland"),
-                new ClusterServer("Ragnarok", 7779, @"D:\Gry\ARK Saves\ARK Server Cebula\Ark Ragnarok")
-            }),
-
-            new ArkCluster("Pomidor", @"D:\Gry\ARK Saves\ARK Server Pomidor\Cluster Data", new List<ClusterServer>
-            {
-                new ClusterServer("Ragnarok", 7781, @"D:\Gry\ARK Saves\ARK Server Pomidor\Ark Ragnarok")
-            })
-        };
-
-
-        while (true)
-        {
-            Console.Clear();
-            Console.WriteLine("========= ARK SERVER CENTER =========");
-            Console.WriteLine("Wybierz klaster do zarządzania:\n");
-
-            for (int i = 0; i < clusters.Count; i++)
-            {
-                Console.WriteLine($"[{i+1}] Klaster: {clusters[i].Name} ({clusters[i].Servers.Count} serwerów)");
-            }
-            Console.WriteLine("[X] Wyjście");
-            Console.Write("\nWybierz: ");
-
-            string? input = Console.ReadLine()?.ToUpper();
-            if (input == "X") break;
-
-            if (int.TryParse(input, out int choice) && choice-1 >= 0 && choice-1 < clusters.Count)
-            {
-                ActiveCluster = clusters[choice-1];
-                break;
-            }
-        }
-    }
-
-    private static void SelectClusterServer(ArkCluster? cluster)
-    {
-        if (cluster == null)
-        {
-            Console.WriteLine("Nie wybrano klastra!");
-            Console.ReadLine();
-            return;
-        }
-
-        bool success = false;
-        while (!success)
-        {
-            Console.Clear();
-            Console.WriteLine($"--- KLASTER: {cluster.Name} ---");
-
-            for (int i = 0; i < cluster.Servers.Count; i++)
-            {
-                var s = cluster.Servers[i];
-                string status = SafetyChecker.IsServerRunningOnPort(s.Port) ? "[ONLINE]" : "[OFFLINE]";
-                Console.WriteLine($"[{i+1}] {s.Map} (Port: {s.Port}) - {status}");
-            }
-            Console.WriteLine("[B] Powrót");
-            Console.Write("\nWybierz: ");
-
-            string? input = Console.ReadLine()?.ToUpper();
-            if (input == "B") break;      
-
-            if (int.TryParse(input, out int choice) && choice-1 >= 0 && choice-1 < cluster.Servers.Count)
-            {
-                // Tutaj wchodzisz w menu konkretnego serwera (Start/Stop/Backup)
-                //OpenServerControl(cluster.Servers[choice]);
-                Console.WriteLine(cluster.Servers[choice-1].Map);
-                Console.ReadLine();
-                ClusterServer server = cluster.Servers[choice - 1];
-                success = true;
-                ActiveServer = server;
-            }
-        }
-    }
-
-
-
     // ------------------------------
     //  Backup Menu
     // ------------------------------
 
-    private static void BackupMenu()
+    private static void BackupMenu(ClusterServer server)
     {
-        bool isSafeNow = SafetyChecker.IsSafeNow(port);
+        bool isSafeNow = SafetyChecker.IsSafeNow(server.Port);
         bool repeat = true;
         while (repeat)
         {
@@ -195,17 +116,17 @@ public class Program
             switch (choice)
             {
                 case "1":
-                    if (isSafeNow) BackupManager.CreateBackup();
+                    if (isSafeNow) BackupManager.CreateBackup(ClusterManager.ActiveServer);
                     else { Console.Clear(); Error("W tej chwili nie można utworzyć nowego zapisu!"); End(); }
                     continue;
 
                 case "2":
-                    if (isSafeNow) BackupManager.RestoreBackup();
+                    if (isSafeNow) BackupManager.RestoreBackup(ClusterManager.ActiveServer);
                     else { Console.Clear(); Error("W tej chwili nie można przywrócić poprzedniego zapisu!"); End(); }
                     continue;
 
                 case "3":
-                    if (isSafeNow) BackupManager.RestoreSnapshot();
+                    if (isSafeNow) BackupManager.RestoreSnapshot(ClusterManager.ActiveServer);
                     else { Console.Clear(); Error("W tej chwili nie można cofnąć przywracania!"); End(); }
                     continue;
 
@@ -228,9 +149,9 @@ public class Program
     //  Server Config Menu
     // ------------------------------
 
-    private static void ServerConfigMenu()
+    private static void ServerConfigMenu(ClusterServer server)
     {
-        bool isSafeNow = SafetyChecker.IsSafeNow(port);
+        bool isSafeNow = SafetyChecker.IsSafeNow(server.Port);
         bool repeat = true;
         while (repeat)
         {
@@ -257,7 +178,7 @@ public class Program
                         Warn("W tej chwili serwer jest włączony, nie modyfikuj plików!"); 
                         End("OK! - Kliknij by przejść dalej... "); 
                     }
-                    FileManager.OpenFile(Path.Combine(PathTo_Saved, "Saved", "Config", "WindowsServer", "GameUserSettings.ini"));
+                    FileManager.OpenFile(Path.Combine(server.SavedPath, "Config", "WindowsServer", "GameUserSettings.ini"));
                     continue;
 
                 case "2":
@@ -267,7 +188,7 @@ public class Program
                         Warn("W tej chwili serwer jest włączony, nie modyfikuj plików!");
                         End("OK! - Kliknij by przejść dalej... ");
                     }
-                    FileManager.OpenFile(Path.Combine(PathTo_Saved, "Saved", "Config", "WindowsServer", "Game.ini"));
+                    FileManager.OpenFile(Path.Combine(server.SavedPath, "Config", "WindowsServer", "Game.ini"));
                     continue;
 
                 case "3":
@@ -277,7 +198,7 @@ public class Program
                         Warn("W tej chwili serwer jest włączony, nie modyfikuj plików!");
                         End("OK! - Kliknij by przejść dalej... ");
                     }
-                    FileManager.OpenFolder(Path.Combine(PathTo_Saved));
+                    FileManager.OpenFolder(server.SavedPath);
                     continue;
 
                 case "4":
