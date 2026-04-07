@@ -35,7 +35,7 @@ public class Program
                 $"========= Menu Główne =========\n" +
                 $"[1] Backupy i przywracanie\n" +
                 $"[2] Konfiguracja serwera\n" +
-                $"[3] Ustawienia ścieżek\n" +
+                $"[3] Comming soon\n" +
                 $"[4] Menu serwerów\n" + 
                 $"[5] Instrukcja\n" +  
                 $"[Q] Wyjście\n" +
