@@ -1,7 +1,6 @@
 ﻿namespace Ark_Server_Center;
 using System.Net.NetworkInformation;
 using static MessageManager;
-using static PathManager;
 
 
 public static class SafetyChecker
@@ -19,25 +18,28 @@ public static class SafetyChecker
         return false;
     }
 
-    public static (bool IsSetSaved, bool IsSetSaves) ArePathsSet()
+    public static (bool IsSetSaved, bool IsSetBackups) ArePathsSet()
     {
-        bool isSetSavedPath = !string.IsNullOrWhiteSpace(PathTo_Saved);
-        bool isSetSavesPath = !string.IsNullOrWhiteSpace(PathTo_SAVES);
+        var server = ClusterManager.ActiveServer;
+        if (server == null) return (false, false);
 
-        return (isSetSavedPath, isSetSavesPath);
+        bool isSetSavedPath = !string.IsNullOrWhiteSpace(server.SavedPath);
+        bool isSetBackupsPath = !string.IsNullOrWhiteSpace(server.BackupsPath);
+
+        return (isSetSavedPath, isSetBackupsPath);
     }
 
     public static bool ArePathsSetAndLog()
     {
-        var (isSetSavedPath, isSetSavesPath) = ArePathsSet();
-        if (isSetSavedPath && isSetSavesPath) return true;
+        var (isSetSavedPath, isSetBackupsPath) = ArePathsSet();
+        if (isSetSavedPath && isSetBackupsPath) return true;
 
         Console.Clear();
         if (!isSetSavedPath)
         {
             Warn("Nie ustalono ścieżki do 'Saved'!");
         }
-        if (!isSetSavesPath)
+        if (!isSetBackupsPath)
         {
             Warn("Nie ustalono ścieżki do backupów!");
         }
@@ -59,18 +61,21 @@ public static class SafetyChecker
         return !isRunning && arePathsSet;
     }
 
-    public static (bool HasSaved, bool HasSaves) CheckFoldersExistence()
+    public static (bool HasSaved, bool HasBackups) CheckFoldersExistence()
     {
-        bool hasSaved = Directory.Exists(Path.Combine(PathTo_Saved, "Saved"));
-        bool hasSaves = Directory.Exists(Path.Combine(PathTo_SAVES, "SAVES"));
+        var server = ClusterManager.ActiveServer;
+        if (server == null) return (false, false);
 
-        return (hasSaved, hasSaves);
+        bool hasSaved = Directory.Exists(server.SavedPath);
+        bool hasBackups = Directory.Exists(server.BackupsPath);
+
+        return (hasSaved, hasBackups);
     }
 
     public static bool CheckFoldersExistenceAndLog()
     {
-        var (hasSaved, hasSaves) = CheckFoldersExistence();
-        if (hasSaved && hasSaves) return true;
+        var (hasSaved, hasBackups) = CheckFoldersExistence();
+        if (hasSaved && hasBackups) return true;
 
         Console.Clear();
         if (!hasSaved)
@@ -78,7 +83,7 @@ public static class SafetyChecker
             Warn("Nie wykryto folderu 'Saved'!\n" +
                  "Upewnij się, czy ścieżka jest prawidłowa.");
         }
-        if (!hasSaves)
+        if (!hasBackups)
         {
             Warn("Nie wykryto folderu na backupy!\n" +
                  "Upewnij się, czy ścieżka jest prawidłowa.");
