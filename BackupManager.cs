@@ -1,14 +1,17 @@
 ﻿namespace Ark_Server_Center;
 using static MessageManager;
-using static PathManager;
+using static ClusterManager;
 
 public static class BackupManager
 {
-    // public static ArkCluster cluster = Program.ActiveCluster;
-    public static ClusterServer server = Program.ActiveServer;
-
-    public static void CreateBackup()
+    public static void CreateBackup(ClusterServer? server)
     {
+        if (server == null)
+        {
+            Error("Nie wybrano serwera!");
+            End(); return;
+        }
+
         Console.Clear();
         string savedDir = server.SavedPath;
         string dirName = "Saved-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
@@ -22,13 +25,19 @@ public static class BackupManager
         End();
     }
 
-    public static void RestoreBackup()
+    public static void RestoreBackup(ClusterServer? server)
     {
+        if (server == null)
+        {
+            Error("Nie wybrano serwera!");
+            End(); return;
+        }
+
         Console.Clear();
-        string savedDir = Path.Combine(PathTo_Saved, "Saved");
-        string databaseDir = Path.Combine(PathTo_Saved, "SAVES");
+        string savedDir = server.SavedPath;
+        string databaseDir = server.BackupsPath;
         string snapshotName = "Snapshot-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
-        string snapshotDir = Path.Combine(PathTo_SAVES, "SAVES", "#Snapshots", snapshotName);
+        string snapshotDir = Path.Combine(server.BackupsPath, "#Snapshots", snapshotName);
         
 
         if (!SafetyChecker.CheckFoldersExistenceAndLog()) { End(); return; }
@@ -68,11 +77,17 @@ public static class BackupManager
     }
 
 
-    public static void RestoreSnapshot()
+    public static void RestoreSnapshot(ClusterServer? server)
     {
+        if (server == null)
+        {
+            Error("Nie wybrano serwera!");
+            End(); return;
+        }
+
         Console.Clear();
-        string savedDir = Path.Combine(PathTo_Saved, "Saved");
-        string snapshotDir = Path.Combine(PathTo_SAVES, "SAVES", "#Snapshots");
+        string savedDir = server.SavedPath;
+        string snapshotDir = Path.Combine(server.BackupsPath, "#Snapshots");
         Directory.CreateDirectory(snapshotDir);
 
         if (!SafetyChecker.CheckFoldersExistenceAndLog()) { End(); return; }
