@@ -4,12 +4,15 @@ using static PathManager;
 
 public static class BackupManager
 {
+    // public static ArkCluster cluster = Program.ActiveCluster;
+    public static ClusterServer server = Program.ActiveServer;
+
     public static void CreateBackup()
     {
         Console.Clear();
-        string savedDir = Path.Combine(PathTo_Saved, "Saved");
+        string savedDir = server.SavedPath;
         string dirName = "Saved-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
-        string backupDir = Path.Combine(PathTo_SAVES, "SAVES", dirName);
+        string backupDir = Path.Combine(server.BackupsPath, dirName);
 
         if (!SafetyChecker.CheckFoldersExistenceAndLog()) { End(); return; }
 

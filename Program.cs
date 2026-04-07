@@ -5,8 +5,8 @@ using static PathManager;
 public class Program
 {
     public static int port = 7777;
-    public static ArkCluster? activeCluster;
-    public static ClusterServer? activeServer;
+    public static ArkCluster? ActiveCluster { get; private set; }
+    public static ClusterServer? ActiveServer { get; private set; }
 
     public static void Main(string[] args)
     {
@@ -15,9 +15,9 @@ public class Program
 
         // Ustalenie portu, klastra etc.
         SelectCluster();
-        SelectClusterServer(activeCluster);
-        activeCluster?.ShowClusterInfo();
-        activeServer?.ShowServerInfo();
+        SelectClusterServer(ActiveCluster);
+        ActiveCluster?.ShowClusterInfo();
+        ActiveServer?.ShowServerInfo();
         Console.ReadLine();
 
 
@@ -120,7 +120,7 @@ public class Program
 
             if (int.TryParse(input, out int choice) && choice-1 >= 0 && choice-1 < clusters.Count)
             {
-                activeCluster = clusters[choice-1];
+                ActiveCluster = clusters[choice-1];
                 break;
             }
         }
@@ -161,7 +161,7 @@ public class Program
                 Console.ReadLine();
                 ClusterServer server = cluster.Servers[choice - 1];
                 success = true;
-                activeServer = server;
+                ActiveServer = server;
             }
         }
     }
