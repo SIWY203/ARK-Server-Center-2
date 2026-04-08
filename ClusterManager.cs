@@ -23,11 +23,7 @@ public static class ClusterManager
         {
             clusters = new List<ArkCluster>();
             SaveClusters(); // tworzenie pliku
-            ClusterCreator();
-            return;
         }
-
-        if (clusters.Count < 1) ClusterCreator();
 
         try
         {
@@ -39,6 +35,8 @@ public static class ClusterManager
             Error($"Błąd podczas wczytywania pliku:\n{ex.Message}");
             clusters = new List<ArkCluster>();
         }
+
+        if (clusters.Count < 1) ClusterCreator();
     }
 
 
@@ -59,19 +57,20 @@ public static class ClusterManager
 
     public static void RequireServerSelection()
     {
+        if (IsServerSelected)
+        {
+            // Zapamiętanie stanu, aby nie zostawić nulla
+            ArkCluster? cluster = ActiveCluster;
+            SelectCluster();
+            if (ActiveCluster != null) SelectClusterServer(ActiveCluster);
+            else ActiveCluster = cluster;
+        }
+
         while (!IsServerSelected)
         {
             SelectCluster();
-
-            if (ActiveCluster != null)
-            {
-                SelectClusterServer(ActiveCluster);
-            }
-            else
-            {
-                // wybrano [Q] Wyjdź
-                Environment.Exit(0);
-            }
+            if (ActiveCluster != null) SelectClusterServer(ActiveCluster);
+            else Environment.Exit(0);
         }
     }
 
@@ -110,6 +109,7 @@ public static class ClusterManager
     {
         if (cluster == null)
         {
+            Console.Clear();
             Console.WriteLine("Nie wybrano klastra!");
             End();
             return;
@@ -135,8 +135,6 @@ public static class ClusterManager
 
             if (int.TryParse(input, out int choice) && choice - 1 >= 0 && choice - 1 < cluster.Servers.Count)
             {
-                Console.WriteLine(cluster.Servers[choice - 1].Map);
-                Console.ReadLine();
                 ClusterServer server = cluster.Servers[choice - 1];
 
                 success = true;
