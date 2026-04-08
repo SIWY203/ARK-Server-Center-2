@@ -10,7 +10,6 @@ public class Program
 
         ClusterManager.LoadClusters();
 
-
         while (ClusterManager.ActiveCluster == null || ClusterManager.ActiveServer == null)
         {
             ClusterManager.RequireServerSelection();
@@ -18,7 +17,7 @@ public class Program
 
         // Session.ActiveCluster.ShowClusterInfo();
         // Session.ActiveServer.ShowServerInfo();
-        Console.ReadLine();
+        // Console.ReadLine();
 
 
         // ------------------------------
@@ -32,7 +31,10 @@ public class Program
 
             Console.WriteLine(
                 $"\n" +
-                $"========= Menu Główne =========\n" +
+                $"============ Menu Główne ============\n" +
+                $"Klaster: {ClusterManager.ActiveCluster.Name}, Mapa: {ClusterManager.ActiveServer.Map} \n" +
+                $"Port: {ClusterManager.ActiveServer.Port}\n" +
+                $"\n" +
                 $"[1] Backupy i przywracanie\n" +
                 $"[2] Konfiguracja serwera\n" +
                 $"[3] Comming soon\n" +
@@ -40,7 +42,7 @@ public class Program
                 $"[5] Instrukcja\n" +  
                 $"[Q] Wyjście\n" +
                 $"\n" +
-                $"===============================\n"
+                $"=====================================\n"
             );
 
             Console.Write("Wybierz: ");
@@ -66,7 +68,7 @@ public class Program
 
                 case "4":
                     Console.Clear();
-                    ClusterManager.SelectCluster();
+                    ClusterManager.RequireServerSelection();
                     continue;
 
                 case "5":
