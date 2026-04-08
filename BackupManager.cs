@@ -1,6 +1,7 @@
-﻿namespace Ark_Server_Center;
+﻿namespace ArkServerCenter;
+using ArkServerCenter.Cluster;
 using static MessageManager;
-using static ClusterManager;
+
 
 public static class BackupManager
 {

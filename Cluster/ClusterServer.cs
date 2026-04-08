@@ -1,4 +1,4 @@
-﻿namespace Ark_Server_Center;
+﻿namespace ArkServerCenter.Cluster;
 using static MessageManager;
 
 

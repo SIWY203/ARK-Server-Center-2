@@ -1,4 +1,4 @@
-﻿namespace Ark_Server_Center;
+﻿namespace ArkServerCenter;
 using System.Diagnostics; // Process
 using static MessageManager;
 

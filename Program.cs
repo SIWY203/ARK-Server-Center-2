@@ -1,4 +1,5 @@
-﻿namespace Ark_Server_Center;
+﻿namespace ArkServerCenter;
+using ArkServerCenter.Cluster;
 using static MessageManager;
 
 public class Program

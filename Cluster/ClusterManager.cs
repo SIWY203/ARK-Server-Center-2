@@ -1,6 +1,4 @@
-﻿namespace Ark_Server_Center;
-
-using System.ComponentModel.Design;
+﻿namespace ArkServerCenter.Cluster;
 using System.Text.Json;
 using static MessageManager;
 
@@ -51,6 +49,9 @@ public static class ClusterManager
     public static void ClusterCreator()
     {
         Success("Kreator Klastrów");
+
+
+
         End(); return;
     }
 
