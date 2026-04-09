@@ -315,14 +315,14 @@ public static class ClusterManager
 
         // -----------------------------
         // TO DO
-        // - Creator → ClusterCreator / ServerCreator
-        // - AddClusterFromFiles()
+        // - Opcja 'Anuluj' dodawania wyłącza program
+        // - refactor ClusterCreator()
         // - Updater Server, Map -> UpdateClusterServer(),
         //   bez tego nie ma folderu 'Saved' itd
-        // - refactor ClusterCreator()
-        // - ServerCreator() → servers
-        // - Opcja 'Anuluj' dodawania wyłącza program
+        //
+        // - Creator → podział na ClusterCreator / ServerCreator
         // - RemoveCluster(), RemoveServer()
+        // - AddClusterFromFiles() - automat dla istniejących poza jsonem 
         // -----------------------------
 
 
