@@ -1,4 +1,6 @@
 ﻿namespace ArkServerCenter.Cluster;
+
+using System.Security.Cryptography;
 using System.Text.Json;
 using static MessageManager;
 
@@ -38,6 +40,7 @@ public static class ClusterManager
     }
 
 
+
     public static void SaveClusters()
     {
         var options = new JsonSerializerOptions { WriteIndented = true }; // ładny format
@@ -46,18 +49,22 @@ public static class ClusterManager
     }
 
 
+
+    // ============================
+    //  CLUSTER CREATOR
+    // ============================
     public static void ClusterCreator()
     {
-        
         string clusterName = string.Empty;
         string clusterPath = RootPath.Value;
-        ArkCluster newCluster = new ArkCluster(clusterName, clusterPath);
 
-        string mapName = string.Empty;
-        int? serverPort = null;
-        ClusterServer newServer = new ClusterServer(mapName, serverPort ?? 0, clusterPath);
+        string mapName;
+        int serverPort;
 
 
+        // ============================
+        //  CLUSTER NAME
+        // ============================
         while (true)
         {
             Console.Clear();
@@ -65,16 +72,13 @@ public static class ClusterManager
             Console.Write("Podaj Nazwę klastra: ");
             string input = Console.ReadLine()?.Trim() ?? string.Empty;
 
-            char[] invalidChars = Path.GetInvalidFileNameChars();
-            bool hasInvalidChars = input.Any(c => invalidChars.Contains(c));
-            if (hasInvalidChars)
+            if (SafetyChecker.HasInvalidChars(input))
             {
                 Console.Clear();
-                Error(
-                    $"Wpisano niedozwolone znaki!\n" +
-                    $"Niedozwolone są: {string.Join(" ", invalidChars.Where(c => !char.IsControl(c)).ToArray())}"); // filtr niewidocznych znaków
+                Error("Nazwa klastra zawiera niedozwolone znaki!");
                 End(); continue;
             }
+
             else if (string.IsNullOrWhiteSpace(input))
             {
                 Console.Clear();
@@ -102,6 +106,10 @@ public static class ClusterManager
             End();
         }
 
+
+        // ============================
+        //  CLUSTER PATH 
+        // ============================
         while (true)
         {
             Console.Clear();
@@ -152,18 +160,177 @@ public static class ClusterManager
         }
 
 
-        // dodać enum map i ręczne wpisywanie niestandardowych map
+        // ============================
+        //  CLUSTERS SERVER MAP 
+        // ============================
+        while (true)
+        {
+            ArkMaps.ShowMapMenu();
+            int mapCount = ArkMaps.GetMapCount();
+            Console.WriteLine($"\n[{mapCount+1}] Inna mapa");
+
+            Console.Write("\nWybierz: ");
+            string input = Console.ReadLine()?.Trim() ?? "";
+
+            if (int.TryParse(input, out int choice) && choice >= 1 && choice <= mapCount)
+            {
+                mapName = ((ArkMaps.Map)(choice - 1)).ToString();
+                Console.Clear();
+                Success($"Wybrano mapę {mapName}");
+                End(); break;
+            }
+
+            else if (input == $"{mapCount + 1}")
+            {
+                Console.Write("Wpisz nazwę mapy: ");
+                mapName = Console.ReadLine()?.Trim() ?? "";
+
+                if (string.IsNullOrWhiteSpace(mapName))
+                {
+                    Console.Clear();
+                    Error("Nieprawidłowa nazwa mapy!");
+                    End();
+                }
+                if (SafetyChecker.HasInvalidChars(mapName))
+                {
+                    Console.Clear();
+                    Error("Nazwa mapy zawiera niedozwolone znaki!");
+                    End();
+                }
+                else
+                {
+                    Console.Clear();
+                    Success($"Wybrano mapę {mapName}");
+                    End(); break;
+                }
+            }
+            else
+            {
+                Console.Clear();
+                Error("Nieprawidłowy wybór mapy!");
+                End();
+            }
+        }
+
+
+        // ============================
+        //  CLUSTERS SERVER PORT
+        // ============================
+        int startPort = 7777;
+
+        var usedPorts = clusters
+            .SelectMany(c => c.Servers)
+            .Select(s => s.Port)
+            .ToHashSet(); // unikalna kolekcja
+
+        int candidate = startPort;
+        while (usedPorts.Contains(candidate))
+        {
+            candidate += 2;
+        }
+
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine($"\n======== Kreator Klastrów ========\n");
+            Console.WriteLine($"Pierwszy dostępny port: {candidate}");
+            Console.WriteLine(
+                $"[1] Potwierdź\n" +
+                $"[2] Inny port\n" +
+                $"[3] Anuluj"
+            );
+
+            Console.Write("\nWybierz: ");
+            string input = Console.ReadLine()?.Trim() ?? "";
+
+            if (input == "1")
+            {
+                Console.Clear();
+                Success($"Przypisano port: {candidate}");
+                serverPort = candidate;
+                End(); break;
+            }
+
+            else if (input == "2")
+            {
+                Console.Clear();
+                Console.Write("Zajęte porty: ");
+                foreach (int p in usedPorts)
+                {
+                    Console.Write($"{p} ");
+                }
+                Console.Write("\nWpisz: ");
+                input = Console.ReadLine()?.Trim() ?? "";
+
+                if (int.TryParse(input, out int userPort))
+                {
+                    if (string.IsNullOrWhiteSpace(input))
+                    {
+                        Console.Clear();
+                        Error("Nie wpisano portu!");
+                        End(); continue;
+                    }
+
+                    if (userPort % 2 == 0)
+                    {
+                        Console.Clear();
+                        Error("Port musi być nieparzysty!");
+                        End(); continue;
+                    }
+
+                    if (!usedPorts.Contains(candidate))
+                    {
+                        Console.Clear();
+                        Error($"Port {userPort} jest zajęty!");
+                        End(); continue;
+                    }
+
+                    serverPort = userPort;
+                    Console.Clear();
+                    Success($"Przypisano port: {serverPort}");
+                    End(); break;
+                }
+                else                
+                {
+                    Console.Clear();
+                    Error("Nieprawidłowy port!");
+                    End(); continue;
+                }
+            }            
+
+            else if (input == "3")
+            {
+                Console.Clear();
+                Console.WriteLine("Anulowano tworzenie klastra.");
+                End(); return;
+            }
+
+            else
+            {
+                Console.Clear();
+                Error("Nieprawidłowy wybór, spróbuj ponownie.");
+                End();
+            }
+        }
+
+
+        // LOGIKE PORTÓW PRZENIEŚĆ DO KONSTRUKTORA CLUSTER SERVER JAKO METODĘ "AssignPort()" ???
         // dodawanie serwerów do klastra
-        // algorytm przypisywania portów i opcja zmiany z info o błędach
-        // poprawić cały ClusterCreator() by był user-friendly
-        // 
-        // w SelectCluster() ewentualnie usunąć End() po ClusterCreator()
+        // przypisywanie ścieżek do klastra i serwerów
+        //
+        // LoadClusters() - zamiast jsona szukać folderów? Nie, bo backupy będą przechowywać inne nazwy folderów, szkoda zachodu
+
+
+
+        // roboczo
+        ArkCluster newCluster = new ArkCluster(clusterName, clusterPath);
+        ClusterServer newServer = new ClusterServer(mapName, serverPort, clusterPath);
+
 
 
 
         Console.Clear();
         Console.WriteLine($"\n======== Kreator Klastrów ========\n");
-        Console.WriteLine();
         Console.WriteLine($"Nazwa klastra: {clusterName}\n");
         Console.WriteLine($"Serwery:\n");
         for (int i = 0; i < newCluster.Servers.Count; i++)
@@ -174,10 +341,10 @@ public static class ClusterManager
         }
 
 
-
         ActiveCluster = newCluster;
         End(); return;
     }
+
 
 
     public static void RequireServerSelection()
@@ -197,6 +364,7 @@ public static class ClusterManager
             else Environment.Exit(0);
         }
     }
+
 
 
     public static void SelectCluster()
@@ -236,6 +404,7 @@ public static class ClusterManager
             }
         }
     }
+
 
     public static void SelectClusterServer(ArkCluster cluster)
     {
