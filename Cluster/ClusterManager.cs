@@ -313,35 +313,43 @@ public static class ClusterManager
             }
         }
 
+        // -----------------------------
+        // TO DO
+        // - Creator → ClusterCreator / ServerCreator
+        // - AddClusterFromFiles()
+        // - Updater Server, Map -> UpdateClusterServer(),
+        //   bez tego nie ma folderu 'Saved' itd
+        // - refactor ClusterCreator()
+        // - ServerCreator() → servers
+        // - Opcja 'Anuluj' dodawania wyłącza program
+        // - RemoveCluster(), RemoveServer()
+        // -----------------------------
 
-        // LOGIKE PORTÓW PRZENIEŚĆ DO KONSTRUKTORA CLUSTER SERVER JAKO METODĘ "AssignPort()" ???
-        // dodawanie serwerów do klastra
-        // przypisywanie ścieżek do klastra i serwerów
-        //
-        // LoadClusters() - zamiast jsona szukać folderów? Nie, bo backupy będą przechowywać inne nazwy folderów, szkoda zachodu
 
-
-
-        // roboczo
         ArkCluster newCluster = new ArkCluster(clusterName, clusterPath);
         ClusterServer newServer = new ClusterServer(mapName, serverPort, clusterPath);
+        newCluster.Servers.Add(newServer);
 
-
+        clusters.Add(newCluster);   // zapis do listy
+        ActiveCluster = newCluster; // zapis do sesji
+        SaveClusters();             // zapis do json
 
 
         Console.Clear();
         Console.WriteLine($"\n======== Kreator Klastrów ========\n");
-        Console.WriteLine($"Nazwa klastra: {clusterName}\n");
-        Console.WriteLine($"Serwery:\n");
+        Console.WriteLine($"Nazwa klastra: {clusterName}");
+        Console.WriteLine($"Lokalizacja: {clusterPath}");
+        Console.WriteLine($"Serwery w klastrze ({newCluster.Servers.Count}):");
+
+        if (newCluster.Servers.Count == 0) Console.WriteLine(" ► brak serwerów");
+
         for (int i = 0; i < newCluster.Servers.Count; i++)
         {
             var server = newCluster.Servers[i];
             string status = SafetyChecker.IsServerRunningOnPort(server.Port) ? "[ONLINE]" : "[OFFLINE]";
-            Console.WriteLine($" - Mapa: {server.Map} (Port: {server.Port}) - {status}");
+            Console.WriteLine($" ► Mapa: {server.Map} (Port: {server.Port}) - {status}");
         }
 
-
-        ActiveCluster = newCluster;
         End(); return;
     }
 
