@@ -92,5 +92,13 @@ public static class SafetyChecker
         return false;
     }
 
+    public static bool HasInvalidChars(string input)
+    {
+        char[] invalidChars = Path.GetInvalidFileNameChars();
+        bool hasInvalidChars = input.Any(c => invalidChars.Contains(c));
+
+        if (hasInvalidChars) return true;
+        return false;
+    }
 
 }
