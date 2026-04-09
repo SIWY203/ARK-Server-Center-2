@@ -8,7 +8,7 @@ public class Program
     {
         Console.Title = "Ark Server Center";
 
-
+        RootPath.Load();
         ClusterManager.LoadClusters();
 
         while (ClusterManager.ActiveCluster == null || ClusterManager.ActiveServer == null)
