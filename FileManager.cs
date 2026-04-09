@@ -55,4 +55,30 @@ public static class FileManager
         }
     }
 
+
+
+    public static string? GetFolderPath()
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("\nWklej ścieżkę do folderu (lub przeciągnij do okna konsoli)\n");
+            Console.Write("Podaj: ");
+            string? input = Console.ReadLine()?.Trim();
+
+            // Przeciągnięcie folderu do konsoli dodaje cudzysłowy
+            input = input?.Replace("\"", "");
+
+            if (!string.IsNullOrWhiteSpace(input) && Directory.Exists(input))
+            {
+                return input;
+            }
+
+            Console.Clear();
+            Error("Błąd: Podana ścieżka nie istnieje lub jest nieprawidłowa!");
+            End(); return null;
+        }
+    }
+
+
 }
