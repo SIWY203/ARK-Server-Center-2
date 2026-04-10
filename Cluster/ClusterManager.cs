@@ -7,13 +7,13 @@ using static MessageManager;
 
 public static class ClusterManager
 {
-    public static ArkCluster? ActiveCluster { get; private set; }
+    public static Cluster? ActiveCluster { get; private set; }
     public static ClusterServer? ActiveServer { get; private set; }
     public static bool IsServerSelected => ActiveServer != null;
 
 
-    private static string configFile = "clusters.json";
-    private static List<ArkCluster> clusters = new();
+    public static string configFile = "clusters.json";
+    public static List<Cluster> clusters = new();
 
 
 
@@ -21,19 +21,19 @@ public static class ClusterManager
     {
         if (!File.Exists(configFile))
         {
-            clusters = new List<ArkCluster>();
+            clusters = new List<Cluster>();
             SaveClusters(); // tworzenie pliku
         }
 
         try
         {
             string jsonString = File.ReadAllText(configFile);
-            clusters = JsonSerializer.Deserialize<List<ArkCluster>>(jsonString) ?? new();
+            clusters = JsonSerializer.Deserialize<List<Cluster>>(jsonString) ?? new();
         }
         catch (Exception ex)
         {
             Error($"Błąd podczas wczytywania pliku:\n{ex.Message}");
-            clusters = new List<ArkCluster>();
+            clusters = new List<Cluster>();
         }
 
         if (clusters.Count < 1) ClusterCreator();
@@ -55,278 +55,24 @@ public static class ClusterManager
     // ============================
     public static void ClusterCreator()
     {
-        string clusterName = string.Empty;
-        string clusterPath = RootPath.Value;
-
-        string mapName;
-        int serverPort;
-
-
-        // ============================
-        //  CLUSTER NAME
-        // ============================
-        while (true)
-        {
-            Console.Clear();
-            Console.WriteLine($"\n======== Kreator Klastrów ========\n");
-            Console.Write("Podaj Nazwę klastra: ");
-            string input = Console.ReadLine()?.Trim() ?? string.Empty;
-
-            if (SafetyChecker.HasInvalidChars(input))
-            {
-                Console.Clear();
-                Error("Nazwa klastra zawiera niedozwolone znaki!");
-                End(); continue;
-            }
-
-            else if (string.IsNullOrWhiteSpace(input))
-            {
-                Console.Clear();
-                Error("Wpis nie może być pusty!");
-                End(); continue;
-            }
-            else
-            {
-                clusterName = input;
-                break;
-            }
-        }
-
-        if (string.IsNullOrWhiteSpace(RootPath.Value))
-        {
-            while (string.IsNullOrWhiteSpace(RootPath.Value))
-            {
-                Console.Clear();
-                Console.WriteLine($"\n======== Kreator Klastrów ========\n");
-                Warn("Jeszcze nie ustawiono domyślnej ścieżki!\n");
-                RootPath.Value = FileManager.GetFolderPath() ?? string.Empty;
-            }
-            Console.Clear();
-            Success("Scieżka główna została zapisana!");
-            End();
-        }
-
-
-        // ============================
-        //  CLUSTER PATH 
-        // ============================
-        while (true)
-        {
-            Console.Clear();
-            Console.WriteLine($"\n======== Kreator Klastrów ========\n");
-            Console.WriteLine($"Domyślna ścieżka: {RootPath.Value}\n");
-            Console.WriteLine(
-                "[1] Zastosuj\n" +
-                "[2] Ustaw inną\n" +
-                "[3] Anuluj\n");
-
-            Console.Write("Wybierz: ");
-            string input = Console.ReadLine()?.Trim() ?? string.Empty;
-
-            if (input == "1")
-            {
-                clusterPath = RootPath.Value;
-                Console.Clear();
-                Success("Zapisano ścieżkę!");
-                End(); break;
-            }
-
-            else if (input == "2")
-            {
-                string? newPath = FileManager.GetFolderPath();
-                if (!string.IsNullOrWhiteSpace(newPath))
-                {
-                    clusterPath = newPath;
-                    Console.Clear();
-                    Success("Zapisano ścieżkę!");
-                    End(); break;
-                }
-            }
-
-            else if (input == "3")
-            {
-                Console.Clear();
-                Console.WriteLine("Anulowano tworzenie klastra.");
-                End(); return;
-            }
-
-            else
-            {
-                Console.Clear();
-                Error("Nieprawidłowy wybór, spróbuj ponownie.");
-                End();
-            }
-            
-        }
-
-
-        // ============================
-        //  CLUSTERS SERVER MAP 
-        // ============================
-        while (true)
-        {
-            ArkMaps.ShowMapMenu();
-            int mapCount = ArkMaps.GetMapCount();
-            Console.WriteLine($"\n[{mapCount+1}] Inna mapa");
-
-            Console.Write("\nWybierz: ");
-            string input = Console.ReadLine()?.Trim() ?? "";
-
-            if (int.TryParse(input, out int choice) && choice >= 1 && choice <= mapCount)
-            {
-                mapName = ((ArkMaps.Map)(choice - 1)).ToString();
-                Console.Clear();
-                Success($"Wybrano mapę {mapName}");
-                End(); break;
-            }
-
-            else if (input == $"{mapCount + 1}")
-            {
-                Console.Write("Wpisz nazwę mapy: ");
-                mapName = Console.ReadLine()?.Trim() ?? "";
-
-                if (string.IsNullOrWhiteSpace(mapName))
-                {
-                    Console.Clear();
-                    Error("Nieprawidłowa nazwa mapy!");
-                    End();
-                }
-                if (SafetyChecker.HasInvalidChars(mapName))
-                {
-                    Console.Clear();
-                    Error("Nazwa mapy zawiera niedozwolone znaki!");
-                    End();
-                }
-                else
-                {
-                    Console.Clear();
-                    Success($"Wybrano mapę {mapName}");
-                    End(); break;
-                }
-            }
-            else
-            {
-                Console.Clear();
-                Error("Nieprawidłowy wybór mapy!");
-                End();
-            }
-        }
-
-
-        // ============================
-        //  CLUSTERS SERVER PORT
-        // ============================
-        int startPort = 7777;
-
-        var usedPorts = clusters
-            .SelectMany(c => c.Servers)
-            .Select(s => s.Port)
-            .ToHashSet(); // unikalna kolekcja
-
-        int candidate = startPort;
-        while (usedPorts.Contains(candidate))
-        {
-            candidate += 2;
-        }
-
-        while (true)
-        {
-            Console.Clear();
-            Console.WriteLine($"\n======== Kreator Klastrów ========\n");
-            Console.WriteLine($"Pierwszy dostępny port: {candidate}");
-            Console.WriteLine(
-                $"[1] Potwierdź\n" +
-                $"[2] Inny port\n" +
-                $"[3] Anuluj"
-            );
-
-            Console.Write("\nWybierz: ");
-            string input = Console.ReadLine()?.Trim() ?? "";
-
-            if (input == "1")
-            {
-                Console.Clear();
-                Success($"Przypisano port: {candidate}");
-                serverPort = candidate;
-                End(); break;
-            }
-
-            else if (input == "2")
-            {
-                Console.Clear();
-                Console.Write("Zajęte porty: ");
-                foreach (int p in usedPorts)
-                {
-                    Console.Write($"{p} ");
-                }
-                Console.Write("\nWpisz: ");
-                input = Console.ReadLine()?.Trim() ?? "";
-
-                if (int.TryParse(input, out int userPort))
-                {
-                    if (string.IsNullOrWhiteSpace(input))
-                    {
-                        Console.Clear();
-                        Error("Nie wpisano portu!");
-                        End(); continue;
-                    }
-
-                    if (userPort % 2 == 0)
-                    {
-                        Console.Clear();
-                        Error("Port musi być nieparzysty!");
-                        End(); continue;
-                    }
-
-                    if (!usedPorts.Contains(candidate))
-                    {
-                        Console.Clear();
-                        Error($"Port {userPort} jest zajęty!");
-                        End(); continue;
-                    }
-
-                    serverPort = userPort;
-                    Console.Clear();
-                    Success($"Przypisano port: {serverPort}");
-                    End(); break;
-                }
-                else                
-                {
-                    Console.Clear();
-                    Error("Nieprawidłowy port!");
-                    End(); continue;
-                }
-            }            
-
-            else if (input == "3")
-            {
-                Console.Clear();
-                Console.WriteLine("Anulowano tworzenie klastra.");
-                End(); return;
-            }
-
-            else
-            {
-                Console.Clear();
-                Error("Nieprawidłowy wybór, spróbuj ponownie.");
-                End();
-            }
-        }
+        // zmienić na 'string?' a null jako opcja "Anuluj" z dużą pętlą tutaj?
+        // czy wewnątrz metod odsłużyć 'anuluj'?
+        string clusterName = ClusterName.AskForClusterName();
+        string clusterPath = ClusterPath.AskForClusterPath() ?? "";
+        string mapName = ClusterServerMap.AskForClusterServerMap();
+        int serverPort = ClusterServerPort.AskForClusterServerPort() ?? 0;
 
         // -----------------------------
         // TO DO
-        // - Opcja 'Anuluj' dodawania wyłącza program
-        // - refactor ClusterCreator()
-        // - Updater Server, Map -> UpdateClusterServer(),
-        //   bez tego nie ma folderu 'Saved' itd
-        //
-        // - Creator → podział na ClusterCreator / ServerCreator
-        // - RemoveCluster(), RemoveServer()
-        // - AddClusterFromFiles() - automat dla istniejących poza jsonem 
+        // - poprawić 'Anuluj' bo aktualnie pomija krok i przeskakuje dalej = źle
+        // - nowa metoda UpdateClusterServer(), bez tego nie ma 'Saved' itd
+        // - Creator → podział na ClusterCreator() / ServerCreator()
+        // - dodać nowe RemoveCluster(), RemoveServer()
+        // - dodać AddClusterFromFiles() - dodaje do pliku json z obcego folderu
         // -----------------------------
 
 
-        ArkCluster newCluster = new ArkCluster(clusterName, clusterPath);
+        Cluster newCluster = new Cluster(clusterName, clusterPath);
         ClusterServer newServer = new ClusterServer(mapName, serverPort, clusterPath);
         newCluster.Servers.Add(newServer);
 
@@ -359,7 +105,7 @@ public static class ClusterManager
     {
         if (IsServerSelected)
         {
-            ArkCluster? cluster = ActiveCluster; // zapis stanu, by nie było nulla
+            Cluster? cluster = ActiveCluster; // zapis stanu, by nie było nulla
             SelectCluster();
             if (ActiveCluster != null) SelectClusterServer(ActiveCluster);
             else ActiveCluster = cluster;
@@ -414,7 +160,7 @@ public static class ClusterManager
     }
 
 
-    public static void SelectClusterServer(ArkCluster cluster)
+    public static void SelectClusterServer(Cluster cluster)
     {
         if (cluster == null)
         {
