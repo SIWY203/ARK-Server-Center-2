@@ -6,8 +6,6 @@ public static class ClusterPath
 {
     public static string? AskForClusterPath()
     {
-        string clusterPath;
-
         if (string.IsNullOrWhiteSpace(RootPath.Value))
         {
             while (string.IsNullOrWhiteSpace(RootPath.Value))
@@ -37,10 +35,9 @@ public static class ClusterPath
 
             if (input == "1")
             {
-                clusterPath = RootPath.Value;
                 Console.Clear();
                 Success("Zapisano ścieżkę!");
-                End(); return clusterPath;
+                End(); return RootPath.Value;
             }
 
             else if (input == "2")
@@ -48,10 +45,9 @@ public static class ClusterPath
                 string? newPath = FileManager.GetFolderPath();
                 if (!string.IsNullOrWhiteSpace(newPath))
                 {
-                    clusterPath = newPath;
                     Console.Clear();
                     Success("Zapisano ścieżkę!");
-                    End(); return clusterPath;
+                    End(); return newPath;
                 }
             }
 
