@@ -8,13 +8,13 @@ public static class ClusterServerPort
     {
         int startPort = 7777;
 
-        var usedPorts = ClusterManager.clusters
+        var cooupiedPorts = ClusterManager.clusters
             .SelectMany(c => c.Servers)
             .Select(s => s.Port)
             .ToHashSet(); // unikalna kolekcja
 
         int candidate = startPort;
-        while (usedPorts.Contains(candidate))
+        while (cooupiedPorts.Contains(candidate))
         {
             candidate += 2;
         }
@@ -44,7 +44,7 @@ public static class ClusterServerPort
             {
                 Console.Clear();
                 Console.Write("Zajęte porty: ");
-                foreach (int p in usedPorts)
+                foreach (int p in cooupiedPorts)
                 {
                     Console.Write($"{p} ");
                 }
@@ -60,24 +60,27 @@ public static class ClusterServerPort
                         End(); continue;
                     }
 
-                    if (userPort % 2 == 0)
+                    else if (userPort % 2 == 0)
                     {
                         Console.Clear();
                         Error("Port musi być nieparzysty!");
                         End(); continue;
                     }
 
-                    if (!usedPorts.Contains(candidate))
+                    else if (cooupiedPorts.Contains(userPort))
                     {
                         Console.Clear();
                         Error($"Port {userPort} jest zajęty!");
                         End(); continue;
                     }
 
-                    candidate = userPort;
-                    Console.Clear();
-                    Success($"Przypisano port: {candidate}");
-                    End(); return candidate;
+                    else
+                    {
+                        Console.Clear();
+                        Success($"Przypisano port: {userPort}");
+                        End(); return userPort;
+                    }
+                    
                 }
                 else
                 {
