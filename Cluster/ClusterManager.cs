@@ -49,31 +49,33 @@ public static class ClusterManager
     }
 
 
+    // -----------------------------
+    // TO DO
+    // - RootPath.cs jest chyba zepsuty, poprawić + dopisać metodę pomocniczą do użycia w AskForClusterPath();
+    // - nowa metoda UpdateClusterServer(), bez tego nie ma 'Saved' itd
+    // - Creator → podział na ClusterCreator() / ServerCreator()
+    // - dodać nowe RemoveCluster(), RemoveServer()
+    // - dodać AddClusterFromFiles() - dodaje do pliku json z obcego folderu
+    // -----------------------------
 
-    // ============================
-    //  CLUSTER CREATOR
-    // ============================
+
     public static void ClusterCreator()
     {
-        // zmienić na 'string?' a null jako opcja "Anuluj" z dużą pętlą tutaj?
-        // czy wewnątrz metod odsłużyć 'anuluj'?
-        string clusterName = ClusterName.AskForClusterName();
-        string clusterPath = ClusterPath.AskForClusterPath() ?? "";
-        string mapName = ClusterServerMap.AskForClusterServerMap();
-        int serverPort = ClusterServerPort.AskForClusterServerPort() ?? 0;
+        string? clusterName = ClusterName.AskForClusterName();
+        if (clusterName == null) return; // "Anuluj"
 
-        // -----------------------------
-        // TO DO
-        // - poprawić 'Anuluj' bo aktualnie pomija krok i przeskakuje dalej = źle
-        // - nowa metoda UpdateClusterServer(), bez tego nie ma 'Saved' itd
-        // - Creator → podział na ClusterCreator() / ServerCreator()
-        // - dodać nowe RemoveCluster(), RemoveServer()
-        // - dodać AddClusterFromFiles() - dodaje do pliku json z obcego folderu
-        // -----------------------------
+        string? clusterPath = ClusterPath.AskForClusterPath();
+        if (clusterPath == null) return;
+
+        string? mapName = ClusterServerMap.AskForClusterServerMap();
+        if (mapName == null) return;
+
+        int? serverPort = ClusterServerPort.AskForClusterServerPort();
+        if (serverPort == null) return;
 
 
         Cluster newCluster = new Cluster(clusterName, clusterPath);
-        ClusterServer newServer = new ClusterServer(mapName, serverPort, clusterPath);
+        ClusterServer newServer = new ClusterServer(mapName, serverPort ?? -1, clusterPath);
         newCluster.Servers.Add(newServer);
 
         clusters.Add(newCluster);   // zapis do listy
@@ -147,8 +149,7 @@ public static class ClusterManager
             if (input == $"{i + 1}")
             {
                 ClusterCreator();
-                End();
-                break;
+                continue;
             }
 
             if (int.TryParse(input, out int choice) && choice - 1 >= 0 && choice - 1 < clusters.Count)
