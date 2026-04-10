@@ -4,7 +4,7 @@ using static MessageManager;
 
 public static class ClusterServerMap
 {
-    public static string AskForClusterServerMap()
+    public static string? AskForClusterServerMap()
     {
         string mapName;
 
@@ -13,6 +13,7 @@ public static class ClusterServerMap
             ArkMaps.ShowMapMenu();
             int mapCount = ArkMaps.GetMapCount();
             Console.WriteLine($"\n[{mapCount + 1}] Inna mapa");
+            Console.WriteLine($"\n[{mapCount + 2}] Anuluj");
 
             Console.Write("\nWybierz: ");
             string input = Console.ReadLine()?.Trim() ?? "";
@@ -49,6 +50,14 @@ public static class ClusterServerMap
                     End(); return mapName;
                 }
             }
+
+            else if (input == $"{mapCount + 2}")
+            {
+                Console.Clear();
+                Console.WriteLine("Anulowano tworzenie klastra.");
+                End(); return null;
+            }
+
             else
             {
                 Console.Clear();
