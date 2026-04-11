@@ -4,13 +4,14 @@
 public class ClusterServer
 {
     public string Map { get; private set; } = string.Empty;
+    public string VisibleMap => Map.EndsWith("_WP") ? Map[..^3] : Map;
     public int Port { get; private set; }
     public string ClusterRootPath { get; private set; } = string.Empty;
 
     // combining paths
-    public string ServerRootPath => Path.Combine(ClusterRootPath, $"{Map}_{Port}");
+    public string ServerRootPath => Path.Combine(ClusterRootPath, $"{VisibleMap}_{Port}");
     public string SavedPath => Path.Combine(ServerRootPath, "ShooterGame", "Saved");
-    public string BackupsPath => Path.Combine(ClusterRootPath, "Backups", "Maps", $"{Map}_{Port}");
+    public string BackupsPath => Path.Combine(ClusterRootPath, "Backups", "Maps", $"{VisibleMap}_{Port}");
 
 
 
@@ -26,7 +27,7 @@ public class ClusterServer
     {
         Console.WriteLine($"\n=== Server Info ===");
         Console.WriteLine($"\n");
-        Console.WriteLine($" -> Mapa: {Map} [Port: {Port}]");
+        Console.WriteLine($" -> Mapa: {VisibleMap} [Port: {Port}]");
         Console.WriteLine($"    Folder: {ServerRootPath}");
         
     }
