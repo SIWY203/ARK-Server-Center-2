@@ -9,17 +9,13 @@ public class Program
         Console.Title = "Ark Server Center";
 
         RootPath.Load();
+        RootPath.Setup(); // if path is not set
         ClusterManager.LoadClusters();
 
         while (ClusterManager.ActiveCluster == null || ClusterManager.ActiveServer == null)
         {
             ClusterManager.RequireServerSelection();
         }
-
-        // Session.ActiveCluster.ShowClusterInfo();
-        // Session.ActiveServer.ShowServerInfo();
-        // Console.ReadLine();
-
 
         // ------------------------------
         //  Main Menu
