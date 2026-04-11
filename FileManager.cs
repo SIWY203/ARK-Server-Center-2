@@ -57,26 +57,32 @@ public static class FileManager
 
 
 
-    public static string? GetFolderPath()
+    public static string? AskForFolderPath(string? message = null)
     {
         while (true)
         {
-            Console.Clear();
-            Console.WriteLine("\nWklej ścieżkę do folderu (lub przeciągnij do okna konsoli)\n");
-            Console.Write("Podaj: ");
-            string? input = Console.ReadLine()?.Trim();
+            if (message != null) Console.WriteLine($"{message}\n");
+            Console.WriteLine("Wpisz \"Q\", aby wyjść...\n");
+            Console.Write("Wpisz ścieżkę lub przeciągnij folder: ");
+            string input = Console.ReadLine()?.Trim() ?? "";
 
-            // Przeciągnięcie folderu do konsoli dodaje cudzysłowy
-            input = input?.Replace("\"", "");
+            input = input.Replace("\"", ""); // Upuszczenie może dodać cudzysłowy
 
             if (!string.IsNullOrWhiteSpace(input) && Directory.Exists(input))
             {
+                Console.Clear();
+                Success($"Zapisano: {input}");
                 return input;
+            }
+
+            if (input.ToUpper() == "Q")
+            {
+                return null; // anuluj
             }
 
             Console.Clear();
             Error("Błąd: Podana ścieżka nie istnieje lub jest nieprawidłowa!");
-            End(); return null;
+            End(); continue;
         }
     }
 
