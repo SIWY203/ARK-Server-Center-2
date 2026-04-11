@@ -6,20 +6,6 @@ public static class ClusterPath
 {
     public static string? AskForClusterPath()
     {
-        if (string.IsNullOrWhiteSpace(RootPath.Value))
-        {
-            while (string.IsNullOrWhiteSpace(RootPath.Value))
-            {
-                Console.Clear();
-                Console.WriteLine($"\n======== Kreator Klastrów ========\n");
-                Warn("Jeszcze nie ustawiono domyślnej ścieżki!\n");
-                RootPath.Value = FileManager.GetFolderPath() ?? string.Empty;
-            }
-            Console.Clear();
-            Success("Scieżka główna została zapisana!");
-            End();
-        }
-
         while (true)
         {
             Console.Clear();
@@ -42,8 +28,11 @@ public static class ClusterPath
 
             else if (input == "2")
             {
-                string? newPath = FileManager.GetFolderPath();
-                if (!string.IsNullOrWhiteSpace(newPath))
+                Console.Clear();
+                string? newPath = FileManager.AskForFolderPath("Ustawianie niestandardowej ścieżki.");
+                if (newPath == null) return null; // anuluj
+
+                else
                 {
                     Console.Clear();
                     Success("Zapisano ścieżkę!");
