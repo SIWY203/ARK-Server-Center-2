@@ -50,12 +50,17 @@ public static class ClusterManager
 
 
     // -----------------------------
+    //
     // TO DO
-    // - RootPath.cs jest chyba zepsuty, poprawić + dopisać metodę pomocniczą do użycia w AskForClusterPath();
+    // - weryfikacja unikalności nazw klastrów
+    // - rozwiązać problem, gdy zmieni się RootPath, trzeba zaktualizować ścieżki w serwerach,
+    //   a potem zaktualizować jsona, by nie było błędów przy wczytywaniu
+    // - czy aby ClusterCreator() nie powinien być w Cluster.cs? Raczej nie?
     // - nowa metoda UpdateClusterServer(), bez tego nie ma 'Saved' itd
-    // - Creator → podział na ClusterCreator() / ServerCreator()
+    // - Oprócz ClusterCreator() dodać ServerCreator()
     // - dodać nowe RemoveCluster(), RemoveServer()
     // - dodać AddClusterFromFiles() - dodaje do pliku json z obcego folderu
+    // 
     // -----------------------------
 
 
@@ -64,7 +69,7 @@ public static class ClusterManager
         string? clusterName = ClusterName.AskForClusterName();
         if (clusterName == null) return; // "Anuluj"
 
-        string? clusterPath = ClusterPath.AskForClusterPath();
+        string? clusterPath = Path.Combine(ClusterPath.AskForClusterPath()!, clusterName);
         if (clusterPath == null) return;
 
         string? mapName = ClusterServerMap.AskForClusterServerMap();
@@ -81,6 +86,10 @@ public static class ClusterManager
         clusters.Add(newCluster);   // zapis do listy
         ActiveCluster = newCluster; // zapis do sesji
         SaveClusters();             // zapis do json
+
+        Directory.CreateDirectory(newCluster.ClusterRootPath);
+        Directory.CreateDirectory(newCluster.ClusterDataPath);
+        Directory.CreateDirectory(newServer.ServerRootPath);
 
 
         Console.Clear();
