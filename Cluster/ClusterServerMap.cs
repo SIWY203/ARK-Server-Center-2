@@ -28,20 +28,30 @@ public static class ClusterServerMap
 
             else if (input == $"{mapCount + 1}")
             {
-                Console.Write("Wpisz nazwę mapy: ");
+                Console.Clear();
+                Console.WriteLine($"\n======== Kreator Klastrów ========\n");
+                Console.WriteLine($"Wpisz \"Q\" aby wyjść z kreatora.\n");
+                Console.Write("Podaj nazwę mapy: ");
                 mapName = Console.ReadLine()?.Trim() ?? "";
+
+                if (mapName.ToUpper() == "Q")
+                {
+                    Console.Clear();
+                    Console.WriteLine("Anulowano tworzenie klastra.");
+                    End(); return null;
+                }
 
                 if (string.IsNullOrWhiteSpace(mapName))
                 {
                     Console.Clear();
                     Error("Nieprawidłowa nazwa mapy!");
-                    End();
+                    End(); continue;
                 }
                 if (SafetyChecker.HasInvalidChars(mapName))
                 {
                     Console.Clear();
                     Error("Nazwa mapy zawiera niedozwolone znaki!");
-                    End();
+                    End(); continue;
                 }
                 else
                 {
@@ -49,6 +59,8 @@ public static class ClusterServerMap
                     Success($"Wybrano mapę {mapName}");
                     End(); return mapName;
                 }
+
+                
             }
 
             else if (input == $"{mapCount + 2}")
