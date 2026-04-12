@@ -2,13 +2,13 @@
 using static MessageManager;
 
 
-public static class ClusterServerPort
+public static class ServerPort
 {
-    public static int? AskForClusterServerPort()
+    public static int? AskForServerPort(string header)
     {
         int startPort = 7777;
 
-        var cooupiedPorts = ClusterManager.clusters
+        var cooupiedPorts = ClusterManager.Clusters
             .SelectMany(c => c.Servers)
             .Select(s => s.Port)
             .ToHashSet(); // unikalna kolekcja
@@ -22,7 +22,7 @@ public static class ClusterServerPort
         while (true)
         {
             Console.Clear();
-            Console.WriteLine($"\n======== Kreator Klastrów ========\n");
+            Console.WriteLine(header);
             Console.WriteLine($"Pierwszy dostępny port: {candidate}");
             Console.WriteLine(
                 $"[1] Potwierdź\n" +
