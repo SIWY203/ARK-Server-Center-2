@@ -1,35 +1,35 @@
-﻿namespace ArkServerCenter.Cluster;
+﻿using System.Text.Json.Serialization;
+
+namespace ArkServerCenter.Cluster;
 
 
 public class ClusterServer
 {
-    public string Map { get; private set; } = string.Empty;
-    public string VisibleMap => Map.EndsWith("_WP") ? Map[..^3] : Map;
+    public string Map { get; private set; }
     public int Port { get; private set; }
-    public string ClusterRootPath { get; private set; } = string.Empty;
+    public string ParentClusterName { get; private set; }
 
-    // combining paths
-    public string ServerRootPath => Path.Combine(ClusterRootPath, $"{VisibleMap}_{Port}");
-    public string SavedPath => Path.Combine(ServerRootPath, "ShooterGame", "Saved");
-    public string BackupsPath => Path.Combine(ClusterRootPath, "Backups", "Maps", $"{VisibleMap}_{Port}");
+    [JsonIgnore] public string VisibleMap => Map.EndsWith("_WP") ? Map[..^3] : Map;
+    [JsonIgnore] public string ClusterRootPath => Path.Combine(RootPath.Value, ParentClusterName);
+    [JsonIgnore] public string ServerRootPath => Path.Combine(ClusterRootPath, $"{VisibleMap}_{Port}");
+    [JsonIgnore] public string SavedPath => Path.Combine(ServerRootPath, "ShooterGame", "Saved");
+    [JsonIgnore] public string BackupsPath => Path.Combine(ClusterRootPath, "Backups", "Maps", $"{VisibleMap}_{Port}");
 
 
 
-    public ClusterServer(string map, int port, string clusterRootPath)
+    public ClusterServer(string map, int port, string parentClusterName)
     {
         Map = map;
         Port = port;
-        ClusterRootPath = clusterRootPath;
+        ParentClusterName = parentClusterName;
     }
 
 
     public void ShowServerInfo()
     {
-        Console.WriteLine($"\n=== Server Info ===");
-        Console.WriteLine($"\n");
-        Console.WriteLine($" -> Mapa: {VisibleMap} [Port: {Port}]");
-        Console.WriteLine($"    Folder: {ServerRootPath}");
-        
+        Console.WriteLine($"\n======== Server Info ========\n");
+        Console.WriteLine($" Klaster: {ParentClusterName}");
+        Console.WriteLine($" Mapa: {VisibleMap} [Port: {Port}]");
     }
 
 }
