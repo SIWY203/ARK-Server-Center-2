@@ -12,32 +12,43 @@ public class Program
         RootPath.Setup(); // if path is not set
         ClusterManager.LoadClusters();
 
-        while (ClusterManager.ActiveCluster == null || ClusterManager.ActiveServer == null)
-        {
-            ClusterManager.RequireServerSelection();
-        }
 
-        // ------------------------------
-        //  Main Menu
-        // ------------------------------
+        // -----------------------------
+        // TO DO
+        // - UpdateClusterServer(), bez tego nie ma 'Saved' itd
+        // - MoveCluster() - może użyć FileManager.MoveDirectory()? Potrzebne do ChangeRootPath()
+        // - ChangeRootPath() - przenosi plik json i wszystkie klastry do nowej lokalizacji, aktualizuje RootPath.Value
+        // - AddClusterFromFiles() - dodaje do pliku json z obcego folderu
+        //
+        // - konfig parametrów startowych serwera, np. ilość slotów, port, mapa, itd.
+        // - poprawić UX: np. wszędzie 'Wróć' tylko w menu kastrów 'Wyjdź'
+        // -----------------------------
+
+
+        
         bool repeat = true;
         while (repeat)
         {
+            while (ClusterManager.ActiveCluster == null || ClusterManager.ActiveServer == null)
+            {
+                ClusterManager.SelectClusterAndServer();
+            }
+
+            // ------------------------------
+            //  Server Menu
+            // ------------------------------
             Console.Clear();
             bool isSafeNow = SafetyChecker.IsSafeNow(ClusterManager.ActiveServer.Port);
 
             Console.WriteLine(
                 $"\n" +
-                $"============ Menu Główne ============\n" +
+                $"============ Menu Serwera ===========\n" +
                 $"Klaster: {ClusterManager.ActiveCluster.Name}, Mapa: {ClusterManager.ActiveServer.Map} \n" +
                 $"Port: {ClusterManager.ActiveServer.Port}\n" +
                 $"\n" +
                 $"[1] Backupy i przywracanie\n" +
-                $"[2] Konfiguracja serwera\n" +
-                $"[3] Comming soon\n" +
-                $"[4] Menu serwerów\n" + 
-                $"[5] Instrukcja\n" +  
-                $"[Q] Wyjście\n" +
+                $"[2] Konfiguracja serwera\n" + 
+                $"[Q] Wróć\n" +
                 $"\n" +
                 $"=====================================\n"
             );
@@ -58,24 +69,9 @@ public class Program
                     ServerConfigMenu(ClusterManager.ActiveServer);
                     continue;
 
-                case "3":
-                    Console.Clear();
-                    Warn("comming soon..."); End();
-                    continue;
-
-                case "4":
-                    Console.Clear();
-                    ClusterManager.RequireServerSelection();
-                    continue;
-
-                case "5":
-                    Console.Clear();
-                    Instruction();
-                    continue;
-
                 case "Q":
-                    Environment.Exit(0);
-                    break;
+                    ClusterManager.ActiveServer = null;
+                    continue;
 
                 default:
                     Console.Clear();
