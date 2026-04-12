@@ -1,28 +1,29 @@
 ﻿namespace ArkServerCenter.Cluster;
+
+using System.Text.Json.Serialization;
 using static MessageManager;
 
 
 public class Cluster
 {
     public string Name { get; private set; }
-    public string ClusterRootPath { get; private set; }
-    public string ClusterDataPath => Path.Combine(ClusterRootPath, "Cluster Data");
-    public string ClusterBackupsPath => Path.Combine(ClusterRootPath, "Backups", "Cluster Data");
     public List<ClusterServer> Servers { get; private set; } = new List<ClusterServer>();
+
+    [JsonIgnore] public string ClusterRootPath => Path.Combine(RootPath.Value, Name);
+    [JsonIgnore] public string ClusterDataPath => Path.Combine(ClusterRootPath, "Cluster Data");
+    [JsonIgnore] public string ClusterBackupsPath => Path.Combine(ClusterRootPath, "Backups", "Cluster Data");
     
 
-
-    public Cluster(string name, string clusterRootPath, List<ClusterServer>? servers = null)
+    public Cluster(string name, List<ClusterServer>? servers = null)
     {
         Name = name;
-        ClusterRootPath = clusterRootPath;
-        Servers = servers ?? new List<ClusterServer>(); // jeśli nie podano serwerów, nowa pusta lista
+        Servers = servers ?? new List<ClusterServer>();
     }
 
 
-    public void AddServer(string map, int port, string serverRootPath)
+    public void AddServer(string map, int port)
     {
-        Servers.Add(new ClusterServer(map, port, serverRootPath));
+        Servers.Add(new ClusterServer(map, port, Name));
         Success($"Dodano serwer do klastra '{Name}': Map = {map}, Port = {port}");
     }
 
@@ -44,13 +45,18 @@ public class Cluster
 
     public void ShowClusterInfo()
     {
-        Console.WriteLine($"\n=== Klaster: {Name} ===");
-        if (Servers.Count == 0) Console.WriteLine(" (brak serwerów)");
+        Console.WriteLine($"\n======== Cluster Info ========\n");
+        Console.WriteLine($"Nazwa klastra: {Name}");
+        Console.WriteLine($"Lokalizacja: {ClusterRootPath}\n");
+        Console.WriteLine($"Serwery w klastrze ({Servers.Count}):\n");
 
-        foreach (var server in Servers)
+        if (Servers.Count == 0) Console.WriteLine(" - brak serwerów");
+
+        for (int i = 0; i < Servers.Count; i++)
         {
-            Console.WriteLine($"\n -> Mapa: {server.Map} [Port: {server.Port}]");
-            Console.WriteLine($"    Folder: {server.ServerRootPath}");
+            var server = Servers[i];
+            string status = SafetyChecker.IsServerRunningOnPort(server.Port) ? "[ONLINE]" : "[OFFLINE]";
+            Console.WriteLine($" - Mapa: {server.Map} (Port: {server.Port}) | {status}");
         }
     }
 
