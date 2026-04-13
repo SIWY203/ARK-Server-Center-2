@@ -213,6 +213,8 @@ public static class ClusterManager
 
                 Directory.CreateDirectory(server.ServerRootPath);
                 SaveClusters();
+
+                SteamCmdManager.UpdateServer(server);
             }
 
             else
@@ -326,7 +328,6 @@ public static class ClusterManager
                 Directory.Delete(pathToClean, true);
             }
 
-            ActiveCluster = null;
             ActiveServer = null;
 
             Console.Clear();
