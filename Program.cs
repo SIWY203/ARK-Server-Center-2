@@ -15,6 +15,10 @@ public class Program
 
         // -----------------------------
         // TO DO
+
+        // SteamCmdManager.UpdateServer() - mimo inicjalizacji na sucho,
+        // nadal nie aktualizuje za jednym razem serwera, dopiero za 2 razem.
+
         // - UpdateClusterServer(), bez tego nie ma 'Saved' itd
         // - MoveCluster() - może użyć FileManager.MoveDirectory()? Potrzebne do ChangeRootPath()
         // - ChangeRootPath() - przenosi plik json i wszystkie klastry do nowej lokalizacji, aktualizuje RootPath.Value
@@ -22,10 +26,11 @@ public class Program
         //
         // - konfig parametrów startowych serwera, np. ilość slotów, port, mapa, itd.
         // - poprawić UX: np. wszędzie 'Wróć' tylko w menu kastrów 'Wyjdź'
+        // - UpdateAllServers() - jako wisienka na torcie
         // -----------------------------
 
 
-        
+
         bool repeat = true;
         while (repeat)
         {
@@ -47,7 +52,8 @@ public class Program
                 $"Port: {ClusterManager.ActiveServer.Port}\n" +
                 $"\n" +
                 $"[1] Backupy i przywracanie\n" +
-                $"[2] Konfiguracja serwera\n" + 
+                $"[2] Konfiguracja serwera\n" +
+                $"[3] Aktualizacja Serwera\n" + 
                 $"[Q] Wróć\n" +
                 $"\n" +
                 $"=====================================\n"
@@ -67,6 +73,11 @@ public class Program
                 case "2":
                     Console.Clear();
                     ServerConfigMenu(ClusterManager.ActiveServer);
+                    continue;
+
+                case "3":
+                    Console.Clear();
+                    SteamCmdManager.UpdateServer(ClusterManager.ActiveServer);
                     continue;
 
                 case "Q":
