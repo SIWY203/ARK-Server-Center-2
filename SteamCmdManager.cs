@@ -2,7 +2,6 @@
 using ArkServerCenter.Cluster;
 using System.Diagnostics;
 using System.IO.Compression;
-using System.Net;
 using static MessageManager;
 
 
@@ -16,22 +15,11 @@ public static class SteamCmdManager
     private const string DownloadUrl = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip";
 
 
-    public static string PrepareAndGetSteamCmdPath()
-    {
-        if (!File.Exists(SteamCmdExe))
-        {
-            DownloadAndExtractSteamCmd();
-        }
-        return SteamCmdExe;
-    }
-
-
-
     private static void DownloadAndExtractSteamCmd()
     {
         try
         {
-            Warn("Nie znaleziono SteamCMD. Rozpoczynam pobieranie...");
+            Log("Nie znaleziono SteamCMD. Rozpoczynam pobieranie...");
             if (!Directory.Exists(SteamCmdDir)) Directory.CreateDirectory(SteamCmdDir);
 
             using (var client = new HttpClient())
@@ -42,15 +30,8 @@ public static class SteamCmdManager
             }
 
             Success("Pobrano SteamCMD. Wypakowywanie...");
-
             ZipFile.ExtractToDirectory(ZipPath, SteamCmdDir, overwriteFiles: true);
             File.Delete(ZipPath);
-
-            Success("Inicjalizacja SteamCMD...");
-            InitializeSteamCmd();
-
-            Success("SteamCMD jest gotowe!");
-            Thread.Sleep(900);
         }
         catch (Exception ex)
         {
@@ -59,39 +40,44 @@ public static class SteamCmdManager
         }
     }
 
-
-    private static void InitializeSteamCmd() // pierwsze uruchomienie i autoupdate
+    private static void InitializeSteamCmd(ClusterServer server)
     {
-        var startInfo = new ProcessStartInfo
+        Log("Inicjalizacja SteamCMD...");
+        ProcessStartInfo initInfo = new ProcessStartInfo
         {
             FileName = SteamCmdExe,
-            Arguments = "+quit",
+            Arguments = $"+force_install_dir \"{server.ServerRootPath}\" +login anonymous +app_update 2430930 validate +quit",
             UseShellExecute = false,
             CreateNoWindow = false
         };
-
-        using (var process = Process.Start(startInfo))
+        using (Process? process = Process.Start(initInfo))
         {
             process?.WaitForExit();
         }
+        Success("SteamCMD jest gotowy!");
     }
+
 
 
 
     public static void UpdateServer(ClusterServer server)
     {
-        string steamCmdPath = SteamCmdManager.PrepareAndGetSteamCmdPath();
-        if (!File.Exists(steamCmdPath)) return;
+        if (!File.Exists(SteamCmdExe))
+        {
+            DownloadAndExtractSteamCmd();
+            InitializeSteamCmd(server);
+        }
 
         Console.WriteLine();
         Success($"AKTUALIZACJA: {server.Map} (Port: {server.Port})");
 
-        // "validate" - sprawdza pliki pobiera braki, "2430930" - ARK Survival Ascended AppID
+        // "validate" - sprawdza pliki pobiera braki
+        // "2430930" - ARK Survival Ascended AppID
         string arguments = $"+force_install_dir \"{server.ServerRootPath}\" +login anonymous +app_update 2430930 validate +quit";
 
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
-            FileName = steamCmdPath,
+            FileName = SteamCmdExe,
             Arguments = arguments,
             UseShellExecute = false,
             CreateNoWindow = false
@@ -103,6 +89,9 @@ public static class SteamCmdManager
         }
 
         Success("Operacja zakończona.");
+        Console.WriteLine(
+            "[Info] Jeśli to jest pierwsza instalacja, przed uruchomieniem serwera wielu plików\n" +
+            "jeszcze nie ma, więc backupy, konfiguracja na plikach itp, mogą jeszcze nie działać.");
 
         // czyszczenie bufora, by nie zatrzymywało instalacji
         while (Console.KeyAvailable) Console.ReadKey(intercept: true);
