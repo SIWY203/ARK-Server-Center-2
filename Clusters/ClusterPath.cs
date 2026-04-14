@@ -5,7 +5,7 @@
 // ==================================
 
 
-//namespace ArkServerCenter.Cluster;
+//namespace ArkServerCenter.Clusters;
 //using static MessageManager;
 
 

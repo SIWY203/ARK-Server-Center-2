@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ArkServerCenter.Cluster;
+namespace ArkServerCenter.Clusters;
 
 
 public class ClusterServer

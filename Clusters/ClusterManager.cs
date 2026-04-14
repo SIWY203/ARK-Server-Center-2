@@ -1,4 +1,4 @@
-﻿namespace ArkServerCenter.Cluster;
+﻿namespace ArkServerCenter.Clusters;
 using System.Text.Json;
 using static MessageManager;
 
