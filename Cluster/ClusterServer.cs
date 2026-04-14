@@ -13,7 +13,7 @@ public class ClusterServer
     [JsonIgnore] public string ClusterRootPath => Path.Combine(RootPath.Value, ParentClusterName);
     [JsonIgnore] public string ServerRootPath => Path.Combine(ClusterRootPath, $"{VisibleMap}_{Port}");
     [JsonIgnore] public string SavedPath => Path.Combine(ServerRootPath, "ShooterGame", "Saved");
-    [JsonIgnore] public string BackupsPath => Path.Combine(ClusterRootPath, "Backups", "Maps", $"{VisibleMap}_{Port}");
+    [JsonIgnore] public string BackupsPath => Path.Combine(ClusterRootPath, "Backups", $"{VisibleMap}_{Port}");
 
 
 
