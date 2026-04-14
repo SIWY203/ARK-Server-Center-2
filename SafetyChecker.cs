@@ -47,11 +47,6 @@ public static class SafetyChecker
         return false;
     }
 
-    public static bool CheckPathToSaved()
-    {
-        return true;
-    }
-
     public static bool IsSafeNow(int port)
     {
         bool isRunning = IsServerRunningOnPort(port);
@@ -81,13 +76,11 @@ public static class SafetyChecker
         Console.Clear();
         if (!hasSaved)
         {
-            Warn("Nie wykryto folderu 'Saved'!\n" +
-                 "Upewnij się, czy ścieżka jest prawidłowa.");
+            Warn("Nie wykryto folderu 'Saved'!\n");
         }
         if (!hasBackups)
         {
-            Warn("Nie wykryto folderu na backupy!\n" +
-                 "Upewnij się, czy ścieżka jest prawidłowa.");
+            Warn("Nie wykryto folderu na backupy!\n");
         }
         return false;
     }
