@@ -1,5 +1,5 @@
 ﻿namespace ArkServerCenter;
-using ArkServerCenter.Cluster;
+using ArkServerCenter.Clusters;
 using static MessageManager;
 
 
@@ -17,6 +17,7 @@ public static class BackupManager
         string savedDir = server.SavedPath;
         string dirName = "Saved-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
         string backupDir = Path.Combine(server.BackupsPath, dirName);
+        Directory.CreateDirectory(backupDir);
 
         if (!SafetyChecker.CheckFoldersExistenceAndLog()) { End(); return; }
 
