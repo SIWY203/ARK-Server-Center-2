@@ -3,7 +3,7 @@ using ArkServerCenter.Clusters;
 using System.Diagnostics;
 using static MessageManager;
 
-public class ServerConfig
+public class ServerLauncher
 {
     private readonly ClusterServer _server;
     public List<string> Parameters { get; set; } = new();
@@ -11,19 +11,19 @@ public class ServerConfig
     public string AllArgs => string.Join("", Parameters) + " " + string.Join(" ", Flags);
     public string ConfigPath => Path.Combine(_server.ClusterRootPath, $"{_server.VisibleMap}_{_server.Port}_launchArgs.txt");
 
-    public ServerConfig(ClusterServer server)
+    public ServerLauncher(ClusterServer server)
     {
         _server = server;
     }
 
-    public static ServerConfig Load(ClusterServer server)
+    public static ServerLauncher LoadConfig(ClusterServer server)
     {
-        var config = new ServerConfig(server);
+        var config = new ServerLauncher(server);
         if (!File.Exists(config.ConfigPath))
         {
             Warn("Brak ustawień rozruchu, tworzenie domyślnych...");
             config.SetDefaultArgs();
-            config.Save();
+            config.SaveConfig();
         }
         else
         {
@@ -37,7 +37,7 @@ public class ServerConfig
         return config;
     }
 
-    public void Save()
+    public void SaveConfig()
     {
         var allLines = Parameters.Concat(Flags).ToList();
         File.WriteAllLines(ConfigPath, allLines);
@@ -66,57 +66,55 @@ public class ServerConfig
         };
     }
 
-    public void AddArgument(string arg)
-    {
-        arg = arg.Trim();
-        if (arg.StartsWith("?")) Parameters.Add(arg);
-        else if (arg.StartsWith("-")) Flags.Add(" " + arg);
-        else
-        {
-            Console.Clear();
-            Error(
-                $"{arg} nie jest ani parametrem, ani flagą!\n" +
-                $"Parametry mają zaczynać się od '?' a flagi od '-'\n" +
-                $"Anulowano.");
-            End(); return;
-        }
-        Console.Clear();
-        Success($"Dodano {arg}");
-        Log($"Obecne argumenty rozruchowe: \n\n{AllArgs}\n");
-        End();
-    }
+    //public void AddArgument(string arg)
+    //{
+    //    arg = arg.Trim();
+    //    if (arg.StartsWith("?")) Parameters.Add(arg);
+    //    else if (arg.StartsWith("-")) Flags.Add(arg);
+    //    else
+    //    {
+    //        Console.Clear();
+    //        Error(
+    //            $"{arg} nie jest ani parametrem, ani flagą!\n" +
+    //            $"Parametry mają zaczynać się od '?' a flagi od '-'\n" +
+    //            $"Anulowano.");
+    //        End(); return;
+    //    }
+    //    Console.Clear();
+    //    Success($"Dodano {arg}");
+    //    Log($"Obecne argumenty rozruchowe: \n\n{AllArgs}\n");
+    //    End();
+    //}
 
-    public void RemoveArgument(string arg = "")
-    {
-        arg = arg.Trim();
-        if (string.IsNullOrWhiteSpace(arg))
-        {
-            Console.Clear();
-            Error($"Nic nie podano!");
-            End(); return;
-        }
-        if (AllArgs.Contains(arg))
-        {
-            Parameters.Remove($"?{arg}");
-            Flags.Remove($" {arg}");
-            Console.Clear();
-            Success($"Usunięto {arg}");
-            Log($"Obecne argumenty rozruchowe: \n\n{AllArgs}\n");
-            End();
-        }
-        else
-        {
-            Console.Clear();
-            Error($"Nie znaleziono {arg}!");
-            Log($"Obecne argumenty rozruchowe: \n\n{AllArgs}\n");
-            End();
-        }
-    }
+    //public void RemoveArgument(string arg = "")
+    //{
+    //    arg = arg.Trim();
+    //    if (string.IsNullOrWhiteSpace(arg))
+    //    {
+    //        Console.Clear();
+    //        Error($"Nic nie podano!");
+    //        End(); return;
+    //    }
+    //    if (AllArgs.Contains(arg))
+    //    {
+    //        Parameters.Remove($"?{arg}");
+    //        Flags.Remove($" {arg}");
+    //        Console.Clear();
+    //        Success($"Usunięto {arg}");
+    //    }
+    //    else
+    //    {
+    //        Console.Clear();
+    //        Error($"Nie znaleziono {arg}!");
+    //    }
+    //    Log($"Obecne argumenty rozruchowe: \n\n{AllArgs}\n");
+    //    End();
+    //}
 
-    public void CreateBackup(string file)
+    public void CreateConfigBackup()
     {
-        string? directory = Path.GetDirectoryName(file);
-        string? fileName = Path.GetFileName(file);
+        string? directory = Path.GetDirectoryName(ConfigPath);
+        string? fileName = Path.GetFileName(ConfigPath);
 
         if (string.IsNullOrEmpty(directory) || string.IsNullOrEmpty(fileName))
         {
@@ -127,17 +125,43 @@ public class ServerConfig
         string backupDir = Path.Combine(directory, "config_backups");
         Directory.CreateDirectory(backupDir);
 
-        string backupPath = Path.Combine(backupDir, "backup-" + fileName);
-        File.Copy(file, backupPath, true);
+        string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        string backupFile = Path.Combine(backupDir, $"{timestamp}_{fileName}");
+        File.Copy(ConfigPath, backupFile, true);
 
         Console.Clear();
-        Success("Uworzono kopię pliku.");
+        Success($"Uworzono kopię: backup_{timestamp}_{fileName}");
         End();
     }
 
-    public static void OpenFile(string file)
+    // public void RestoreConfigBackup() { }
+
+    public static void OpenConfigFile(ServerLauncher config)
     {
-        FileManager.OpenFile(file);
+        FileManager.OpenFile(config.ConfigPath);
+    }
+
+    public void ShowConfig()
+    {
+        Log($"Parametry rozruchowe:\n" +
+            $"\n" +
+            $"{_server.Map}{AllArgs}");
+        End();
+    }
+
+    public static void DeleteConfig(ServerLauncher config)
+    {
+        if (!string.IsNullOrWhiteSpace(config.ConfigPath))
+        {
+            File.Delete(config.ConfigPath);
+            Success("Usunięto plik konfiguracyjny. Nowy zostanie wygenerowany automatycznie.");
+            End();
+        }
+        else
+        {
+            Error("Usuwanie pliku nie powiodło się!");
+            End();
+        }
     }
 
     public static void Launch()
@@ -153,7 +177,7 @@ public class ServerConfig
         string serverExePath = Path.Combine(server.ServerRootPath, "ShooterGame", "Binaries", "Win64", "ArkAscendedServer.exe");
         if (!File.Exists(serverExePath)) { Error($"Nie znaleziono pliku serwera: {serverExePath}"); End(); return; }
 
-        var config = Load(server);
+        var config = LoadConfig(server);
 
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
@@ -175,10 +199,7 @@ public class ServerConfig
         }
 
         Success("Uruchamianie serwera...\n");
-        Log($"Parametry rozruchowe\n" +
-            $"\n" +
-            $"{server.Map}{config.AllArgs}");
-        End();
+        config.ShowConfig();
     }
 
 
