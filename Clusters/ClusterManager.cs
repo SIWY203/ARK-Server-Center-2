@@ -126,12 +126,12 @@ public static class ClusterManager
                 $"UWAGA! Usunięcie klastra spowoduje wykasowanie z dysku\n" +
                 $"danych klastra {ActiveCluster?.Name} wraz z jego serwerami\n");
             Console.WriteLine(
-                "[1] Tak, usuń\n" +
+                "[T] Tak, usuń\n" +
                 "[Q] Nie usuwaj!");
             Console.Write("\nWybierz: ");
             string input = Console.ReadLine()?.Trim() ?? "";
 
-            if (input != "1")
+            if (input != "T")
             {
                 Console.Clear();
                 Console.WriteLine("Anulowano usuwanie klastra.");
@@ -143,12 +143,12 @@ public static class ClusterManager
                 Console.Clear();
                 Warn($"Czy napewno chcesz usunąć klaster {ActiveCluster?.Name}?\n");
                 Console.WriteLine(
-                    "[1] Tak, usuń\n" +
+                    "[T] Tak, usuń\n" +
                     "[Q] Nie usuwaj!");
                 Console.Write("\nWybierz: ");
                 string confirm = Console.ReadLine()?.Trim() ?? "";
 
-                if (confirm != "1")
+                if (confirm != "T")
                 {
                     Console.Clear();
                     Console.WriteLine("Anulowano usuwanie klastra.");
@@ -290,12 +290,12 @@ public static class ClusterManager
             $"UWAGA! Usunięcie serwera spowoduje wykasowanie z dysku\n" +
             $"danych serwera {ActiveServer?.Map} ({ActiveServer?.Port}) wraz z jego plikami\n");
         Console.WriteLine(
-            "[1] Tak, usuń\n" +
-            "[Q] Nie usuwaj!");
+            "[T] Tak, usuń\n" +
+            "[N] Nie usuwaj!");
         Console.Write("\nWybierz: ");
         input = Console.ReadLine()?.Trim() ?? "";
 
-        if (input != "1")
+        if (input.ToUpper() != "T")
         {
             Console.Clear();
             Console.WriteLine("Anulowano usuwanie serwera.");
@@ -307,12 +307,12 @@ public static class ClusterManager
             Console.Clear();
             Warn($"Czy napewno chcesz usunąć serwer {ActiveServer?.Map} ({ActiveServer?.Port})?\n");
             Console.WriteLine(
-                "[1] Tak, usuń\n" +
-                "[Q] Nie usuwaj!"); 
+                "[T] Tak, usuń\n" +
+                "[N] Nie usuwaj!"); 
             Console.Write("\nWybierz: ");
             string confirm = Console.ReadLine()?.Trim() ?? "";
 
-            if (confirm != "1")
+            if (confirm != "T")
             {
                 Console.Clear();
                 Console.WriteLine("Anulowano usuwanie serwera.");
