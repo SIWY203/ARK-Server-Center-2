@@ -17,13 +17,13 @@ public class Program
         // TO DO
         //
         // - globalne IP, jakieś globalne settingi z IP i RootPath?
-        // - zaimplementować metody dodawania i usuwania parametrów rozruchu
-        // - UpdateAllServers() - jako wisienka na torcie
+        // - UpdateAllServers() - dla wygody
         //
         // - MoveCluster() - może użyć FileManager.MoveDirectory()? Potrzebne do ChangeRootPath()
         // - ChangeRootPath() - przenosi plik json i wszystkie klastry do nowej lokalizacji, aktualizuje RootPath.Value
-        // - AddClusterFromFiles() - dodaje do pliku json z obcego folderu
         //
+        // - AddClusterFromFiles() - dodaje do pliku json z obcego folderu
+        // - szablony dla ini i launch
         // -----------------------------
 
 
@@ -65,7 +65,7 @@ public class Program
             {
                 case "1":
                     Console.Clear();
-                    ServerConfig.Launch();
+                    ServerLauncher.Launch();
                     continue;
 
                 case "2":
@@ -242,7 +242,10 @@ public class Program
             Console.WriteLine(
                $"\n" +
                $"==== Konfiguracja Rozruchu ====\n" +
-               $"[1] Otwórz plik\n" +
+               $"[1] Wyświetl parametry\n" +
+               $"[2] Otwórz plik\n" +
+               $"[3] Resetuj plik\n" +
+               $"[4] Backup pliku\n" +
                $"[Q] Wróć\n" +
                $"\n" +
                $"===============================\n"
@@ -257,8 +260,22 @@ public class Program
             {
                 case "1":
                     Console.Clear();
-                    ServerConfig.Load(server);
-                    ServerConfig.OpenFile(ServerConfig.Load(server).ConfigPath);
+                    ServerLauncher.LoadConfig(server).ShowConfig();
+                    continue;
+
+                case "2":
+                    Console.Clear();
+                    ServerLauncher.OpenConfigFile(ServerLauncher.LoadConfig(server));
+                    continue;
+
+                case "3":
+                    Console.Clear();
+                    ServerLauncher.DeleteConfig(ServerLauncher.LoadConfig(server));
+                    continue;
+
+                case "4":
+                    Console.Clear();
+                    ServerLauncher.LoadConfig(server).CreateConfigBackup();
                     continue;
 
                 case "Q":
