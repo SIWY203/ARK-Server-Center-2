@@ -1,5 +1,5 @@
 ﻿namespace ArkServerCenter;
-using ArkServerCenter.Cluster;
+using ArkServerCenter.Clusters;
 using System.Diagnostics;
 using System.IO.Compression;
 using static MessageManager;

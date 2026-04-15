@@ -1,5 +1,5 @@
 ﻿namespace ArkServerCenter;
-using ArkServerCenter.Cluster;
+using ArkServerCenter.Clusters;
 using static MessageManager;
 
 public class Program
@@ -15,18 +15,15 @@ public class Program
 
         // -----------------------------
         // TO DO
-
-        // SteamCmdManager.UpdateServer() - mimo inicjalizacji na sucho,
-        // nadal nie aktualizuje za jednym razem serwera, dopiero za 2 razem.
-
-        // - UpdateClusterServer(), bez tego nie ma 'Saved' itd
+        //
+        // - globalne IP, jakieś globalne settingi z IP i RootPath?
+        // - zaimplementować metody dodawania i usuwania parametrów rozruchu
+        // - UpdateAllServers() - jako wisienka na torcie
+        //
         // - MoveCluster() - może użyć FileManager.MoveDirectory()? Potrzebne do ChangeRootPath()
         // - ChangeRootPath() - przenosi plik json i wszystkie klastry do nowej lokalizacji, aktualizuje RootPath.Value
         // - AddClusterFromFiles() - dodaje do pliku json z obcego folderu
         //
-        // - konfig parametrów startowych serwera, np. ilość slotów, port, mapa, itd.
-        // - poprawić UX: np. wszędzie 'Wróć' tylko w menu kastrów 'Wyjdź'
-        // - UpdateAllServers() - jako wisienka na torcie
         // -----------------------------
 
 
@@ -51,9 +48,10 @@ public class Program
                 $"Klaster: {ClusterManager.ActiveCluster.Name}, Mapa: {ClusterManager.ActiveServer.Map} \n" +
                 $"Port: {ClusterManager.ActiveServer.Port}\n" +
                 $"\n" +
-                $"[1] Backupy i przywracanie\n" +
-                $"[2] Konfiguracja serwera\n" +
-                $"[3] Aktualizacja Serwera\n" + 
+                $"[1] Uruchom serwer\n" +
+                $"[2] Backupy i przywracanie\n" +
+                $"[3] Konfiguracja serwera\n" +
+                $"[4] Aktualizacja Serwera\n" + 
                 $"[Q] Wróć\n" +
                 $"\n" +
                 $"=====================================\n"
@@ -67,15 +65,20 @@ public class Program
             {
                 case "1":
                     Console.Clear();
-                    BackupMenu(ClusterManager.ActiveServer);
+                    ServerConfig.Launch();
                     continue;
 
                 case "2":
                     Console.Clear();
-                    ServerConfigMenu(ClusterManager.ActiveServer);
+                    BackupMenu(ClusterManager.ActiveServer);
                     continue;
 
                 case "3":
+                    Console.Clear();
+                    ServerConfigMenu(ClusterManager.ActiveServer);
+                    continue;
+
+                case "4":
                     Console.Clear();
                     SteamCmdManager.UpdateServer(ClusterManager.ActiveServer);
                     continue;
@@ -111,7 +114,7 @@ public class Program
                 $"[1] Nowy zapis\n" +
                 $"[2] Przywróć zapis\n" +
                 $"[3] Cofnij przywracanie\n" +
-                $"[4] Wróć\n" +
+                $"[Q] Wróć\n" +
                 $"\n" +
                 $"=========================\n"
            );
@@ -136,7 +139,7 @@ public class Program
                     else { Console.Clear(); Error("W tej chwili nie można cofnąć przywracania!"); End(); }
                     continue;
 
-                case "4":
+                case "Q":
                     repeat = false;
                     break;
 
@@ -161,13 +164,15 @@ public class Program
         bool repeat = true;
         while (repeat)
         {
+            Console.Clear();
             Console.WriteLine(
                $"\n" +
                $"==== Konfiguracja Serwera ====\n" +
-               $"[1] GameUserSettings.ini\n" +
-               $"[2] Game.ini\n" +
-               $"[3] Folder serwera\n" +
-               $"[4] Wróć\n" +
+               $"[1] Parametry rozruchowe\n" +
+               $"[2] GameUserSettings.ini\n" +
+               $"[3] Game.ini\n" +
+               $"[4] Folder serwera\n" +
+               $"[Q] Wróć\n" +
                $"\n" +
                $"==============================\n"
            );
@@ -179,22 +184,16 @@ public class Program
             {
                 case "1":
                     Console.Clear();
+                    LaunchMenu();
+                    continue;
+                case "2":
+                    Console.Clear();
                     if (!isSafeNow) 
                     {  
                         Warn("W tej chwili serwer jest włączony, nie modyfikuj plików!"); 
                         End("OK! - Kliknij by przejść dalej... "); 
                     }
                     FileManager.OpenFile(Path.Combine(server.SavedPath, "Config", "WindowsServer", "GameUserSettings.ini"));
-                    continue;
-
-                case "2":
-                    Console.Clear();
-                    if (!isSafeNow)
-                    {
-                        Warn("W tej chwili serwer jest włączony, nie modyfikuj plików!");
-                        End("OK! - Kliknij by przejść dalej... ");
-                    }
-                    FileManager.OpenFile(Path.Combine(server.SavedPath, "Config", "WindowsServer", "Game.ini"));
                     continue;
 
                 case "3":
@@ -204,10 +203,65 @@ public class Program
                         Warn("W tej chwili serwer jest włączony, nie modyfikuj plików!");
                         End("OK! - Kliknij by przejść dalej... ");
                     }
-                    FileManager.OpenFolder(server.SavedPath);
+                    FileManager.OpenFile(Path.Combine(server.SavedPath, "Config", "WindowsServer", "Game.ini"));
                     continue;
 
                 case "4":
+                    Console.Clear();
+                    if (!isSafeNow)
+                    {
+                        Warn("W tej chwili serwer jest włączony, nie modyfikuj plików!");
+                        End("OK! - Kliknij by przejść dalej... ");
+                    }
+                    FileManager.OpenFolder(server.SavedPath);
+                    continue;
+
+                case "Q":
+                    repeat = false;
+                    break;
+
+                default:
+                    Console.Clear();
+                    Error("Nieprawidłowy wybór!");
+                    End();
+                    continue;
+            }
+
+        }
+    }
+
+    // ------------------------------
+    //  Launch Menu
+    // ------------------------------
+    public static void LaunchMenu()
+    {
+        bool repeat = true;
+        while (repeat)
+        {
+            Console.Clear();
+            Console.WriteLine(
+               $"\n" +
+               $"==== Konfiguracja Rozruchu ====\n" +
+               $"[1] Otwórz plik\n" +
+               $"[Q] Wróć\n" +
+               $"\n" +
+               $"===============================\n"
+           );
+            Console.Write("Wybierz: ");
+            string choice = (Console.ReadLine() ?? "").ToUpper();
+            Console.WriteLine();
+
+            ClusterServer? server = ClusterManager.ActiveServer;
+            if (server == null) { Error("Nie ma aktywnego serwera!"); End(); return; }
+            switch (choice)
+            {
+                case "1":
+                    Console.Clear();
+                    ServerConfig.Load(server);
+                    ServerConfig.OpenFile(ServerConfig.Load(server).ConfigPath);
+                    continue;
+
+                case "Q":
                     repeat = false;
                     break;
 
