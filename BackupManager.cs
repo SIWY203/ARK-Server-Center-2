@@ -147,7 +147,7 @@ public static class BackupManager
             Directory.CreateDirectory(tempDir);
 
             // 2. kopiowanie do temp
-            CopyDirectoryCore(sourceDir, tempDir);
+            FileManager.CopyDirectoryCore(sourceDir, tempDir);
 
             // 3. sprawdzenie czy aby folder nie jest pusty
             if (Directory.GetFileSystemEntries(tempDir).Length == 0)
@@ -174,29 +174,6 @@ public static class BackupManager
             return false;
         }
         return true;
-
-    }
-
-
-    public static void CopyDirectoryCore(string sourceDir, string targetDir)
-    {
-        Directory.CreateDirectory(targetDir);
-
-        // kopia plików w folderze
-        foreach (string file in Directory.GetFiles(sourceDir))
-        {
-            string fileName = Path.GetFileName(file);
-            string targetFile = Path.Combine(targetDir, fileName);
-            File.Copy(file, targetFile, true);
-        }
-
-        // rekurencyjne kopiowanie podfolderów
-        foreach (string subDir in Directory.GetDirectories(sourceDir))
-        {
-            string subDirName = Path.GetFileName(subDir);
-            string targetSubDir = Path.Combine(targetDir, subDirName);
-            CopyDirectoryCore(subDir, targetSubDir); // rekurencja (f. wywołuje samą siebie)
-        }
 
     }
 
