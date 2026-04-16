@@ -270,12 +270,20 @@ public class Program
 
                 case "2":
                     Console.Clear();
+                    if (SafetyChecker.IsServerRunningOnPort(server.Port))
+                    { 
+                        Warn($"Serwer {server.VisibleMap} ({server.Port}) jest włączony!"); 
+                    }
                     ServerLauncher.OpenConfigFile(ServerLauncher.LoadConfig(server));
                     continue;
 
                 case "3":
                     Console.Clear();
-                    ServerLauncher.DeleteConfig(ServerLauncher.LoadConfig(server));
+                    if (SafetyChecker.IsServerRunningOnPort(server.Port))
+                    {
+                        Warn($"Serwer {server.VisibleMap} ({server.Port}) jest włączony! Anulowano!");
+                    }
+                    else ServerLauncher.DeleteConfig(ServerLauncher.LoadConfig(server));
                     continue;
 
                 case "4":
