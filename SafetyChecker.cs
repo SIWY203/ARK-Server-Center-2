@@ -27,10 +27,10 @@ public static class SafetyChecker
         {
             for (int j = 0; j < clusters[i].Servers.Count; j++)
             {
-                if (IsServerRunningOnPort(clusters[i].Servers[j].Port)) return false; 
+                if (IsServerRunningOnPort(clusters[i].Servers[j].Port)) return true; 
             }
         }
-        return true;
+        return false;
     }
 
 
