@@ -53,6 +53,13 @@ public static class RootPath
     public static void ChangePath()
     {
         Console.Clear();
+
+        if (SafetyChecker.IsAnyServerRunning())
+        {
+            Error($"Jeden z serwerów jest włączony! Anulowano.");
+            End(); return;
+        }
+
         string? newPath = FileManager.AskForFolderPath("Ustawianie głównego folderu.");
         if (newPath == null) return; // anuluj
         if (newPath == RootPath.Value)
