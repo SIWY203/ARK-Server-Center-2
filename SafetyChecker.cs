@@ -19,6 +19,21 @@ public static class SafetyChecker
         return false;
     }
 
+
+    public static bool IsAnyServerRunning()
+    {
+        List<Cluster> clusters = ClusterManager.Clusters;
+        for (int i = 0; i < clusters.Count; i++)
+        {
+            for (int j = 0; j < clusters[i].Servers.Count; j++)
+            {
+                if (IsServerRunningOnPort(clusters[i].Servers[j].Port)) return false; 
+            }
+        }
+        return true;
+    }
+
+
     public static (bool IsSetSaved, bool IsSetBackups) ArePathsSet()
     {
         var server = ClusterManager.ActiveServer;
@@ -47,7 +62,8 @@ public static class SafetyChecker
         return false;
     }
 
-    public static bool IsSafeNow(int port)
+
+    public static bool IsSafeNow(int port) // check server running and exists Saved and backups folder
     {
         bool isRunning = IsServerRunningOnPort(port);
         if (isRunning) Warn("Serwer jest włączony!");
@@ -56,6 +72,7 @@ public static class SafetyChecker
         bool arePathsSet = ArePathsSetAndLog();
         return !isRunning && arePathsSet;
     }
+
 
     public static (bool HasSaved, bool HasBackups) CheckFoldersExistence()
     {
@@ -67,6 +84,7 @@ public static class SafetyChecker
 
         return (hasSaved, hasBackups);
     }
+
 
     public static bool CheckFoldersExistenceAndLog()
     {
@@ -84,6 +102,7 @@ public static class SafetyChecker
         }
         return false;
     }
+
 
     public static bool HasInvalidChars(string input)
     {
