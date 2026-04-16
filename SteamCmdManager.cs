@@ -62,6 +62,12 @@ public static class SteamCmdManager
 
     public static void UpdateServer(ClusterServer server, bool isAuto = false)
     {
+        if (SafetyChecker.IsServerRunningOnPort(server.Port))
+        {
+            Error($"Serwer jest włączony! Anulowano.");
+            End(); return;
+        }
+
         if (!File.Exists(SteamCmdExe))
         {
             DownloadAndExtractSteamCmd();
@@ -113,6 +119,13 @@ public static class SteamCmdManager
 
         Console.Clear();
         List<Cluster> clusters = ClusterManager.Clusters;
+
+        if (SafetyChecker.IsAnyServerRunning())
+        {
+            Error($"Jeden z serwerów jest włączony! Anulowano."); 
+            End(); return;
+        }
+
         for (int i = 0; i < clusters.Count; i++)
         {
             Console.WriteLine();
