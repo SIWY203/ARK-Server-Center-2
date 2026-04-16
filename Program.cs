@@ -16,18 +16,14 @@ public class Program
         // -----------------------------
         // TO DO
         //
-        // ZABEZPIECZYĆ wszystkie opcje ingerencji w serwer gdy jest włączony
-        //
-        // [menu klastrów] Ustawienia:
-        // - Adres IP
-        // - Skróty .bat dla serwów
-        // - Język
-        //
-        // - Main(args) użyć do uruchomienia danego serwera/serwerów tą aplikacją za pomocą batcha
+        // - globalny adres IP
+        // - skróty .bat dla serwerów
+        // - język angielski
         //
         // - AddClusterFromFiles() - dodaje do pliku json z obcego folderu
         // - szablony dla ini i launch
         //
+        // - Main(args) użyć do uruchomienia danego serwera/serwerów tą aplikacją za pomocą batcha
         // - przenieść wszystkie menu do klasy Menu, uporządkować, może skorzystać z jednego wzorca?
         // -----------------------------
 
@@ -281,7 +277,7 @@ public class Program
                     Console.Clear();
                     if (SafetyChecker.IsServerRunningOnPort(server.Port))
                     {
-                        Warn($"Serwer {server.VisibleMap} ({server.Port}) jest włączony! Anulowano!");
+                        Warn($"Serwer {server.VisibleMap} ({server.Port}) jest włączony! Anulowano!"); 
                     }
                     else ServerLauncher.DeleteConfig(ServerLauncher.LoadConfig(server));
                     continue;
