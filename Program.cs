@@ -15,14 +15,20 @@ public class Program
 
         // -----------------------------
         // TO DO
-        // - [menu klastrów] Ustawienia: Adres IP, Folder główny, Aktualizacja (UpdateAll), Skróty (generator .bat dla serwów)
+        //
+        // ZABEZPIECZYĆ wszystkie opcje ingerencji w serwer gdy jest włączony
+        //
+        // [menu klastrów] Ustawienia:
+        // - Adres IP
+        // - Skróty .bat dla serwów
+        // - Język
         //
         // - Main(args) użyć do uruchomienia danego serwera/serwerów tą aplikacją za pomocą batcha
         //
         // - AddClusterFromFiles() - dodaje do pliku json z obcego folderu
         // - szablony dla ini i launch
         //
-        // - wersje języczne
+        // - przenieść wszystkie menu do klasy Menu, uporządkować, może skorzystać z jednego wzorca?
         // -----------------------------
 
 
@@ -292,26 +298,75 @@ public class Program
     }
 
 
+    public static void GlobalSettingsMenu()
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("========= ARK SERVER CENTER =========");
+            Console.WriteLine("Personalizacja globalnych ustawień\n");
+            Console.WriteLine("[1] Aktualizacja"); 
+            Console.WriteLine("[2] Adres IP");
+            Console.WriteLine("[3] Folder główny");
+            Console.WriteLine("[4] Skróty");
+            Console.WriteLine("[5] Język (lang)");
+            Console.WriteLine("[Q] Wyjdź");
+            Console.Write("\nWybierz: ");
+
+            string? input = Console.ReadLine()?.ToUpper();
+            if (input == "Q")
+            {
+                Console.Clear();
+                ClusterManager.ActiveCluster = null;
+                break; // exit program
+            }
+
+            if (input == "1")
+            {
+                Console.Clear();
+                SteamCmdManager.UpdateAllServers();
+                continue;
+            }
+
+            if (input == "2")
+            {
+                Console.Clear();
+                Console.WriteLine("dostępne wkrótce..."); End();
+                continue;
+            }
+
+            if (input == "3")
+            {
+                Console.Clear();
+                RootPath.ChangePath();
+                continue;
+            }
+
+            if (input == "4")
+            {
+                Console.Clear();
+                Console.WriteLine("dostępne wkrótce..."); End();
+                continue;
+            }
+
+            if (input == "5")
+            {
+                Console.Clear();
+                Console.WriteLine("dostępne wkrótce..."); End();
+                continue;
+            }
+
+        }
+    }
+
+
     // ------------------------------
     //  Instruction
     // ------------------------------
 
     private static void Instruction()
     {
-        Console.WriteLine(
-            $"========== INSTRUKCJA ==========" +
-            $"\n" +
-            $"\nCo robią poszczególne opcje?" +
-            $"\n" +
-            $"\n 1 - tworzy nowy backup z aktualnej rozgrywki." +
-            $"\n 2 - przywraca backup i tworzy zapasową kopię aktualnie podmienianego" +
-            $"\n     zapisu, aby można było go wrócić jeśli backup okaże się stary." +
-            $"\n 3 - przywraca nadpisany powyższą opcją zapis, nawet po nowym backupie." +
-            $"\n 4 - menu plików konfiguracyjnych serwera, w przyszłości będą tu parametry" +
-            $"\n     startowe serwera i wszystkie inne potrzebne funkcje." +
-            $"\n 5 - menu zarządzania ścieżkami. W każdej chwili można je zmienić." +
-            $"\n");
-        
+        Console.WriteLine("aktualnie niedostępne...");
         End();
     }
 
