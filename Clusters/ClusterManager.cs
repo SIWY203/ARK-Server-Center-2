@@ -72,7 +72,8 @@ public static class ClusterManager
         Directory.CreateDirectory(newCluster.ClusterDataPath);
         Directory.CreateDirectory(newServer.ServerRootPath);
 
-        CreateServer();
+        SteamCmdManager.UpdateServer(newServer);
+        CreateServer(); // next servers
     }
 
 
@@ -131,7 +132,7 @@ public static class ClusterManager
             Console.Write("\nWybierz: ");
             string input = Console.ReadLine()?.Trim() ?? "";
 
-            if (input != "T")
+            if (input.ToUpper() != "T")
             {
                 Console.Clear();
                 Console.WriteLine("Anulowano usuwanie klastra.");
@@ -148,7 +149,7 @@ public static class ClusterManager
                 Console.Write("\nWybierz: ");
                 string confirm = Console.ReadLine()?.Trim() ?? "";
 
-                if (confirm != "T")
+                if (confirm.ToUpper() != "T")
                 {
                     Console.Clear();
                     Console.WriteLine("Anulowano usuwanie klastra.");
@@ -383,6 +384,7 @@ public static class ClusterManager
             }
             Console.WriteLine($"[{i + 1}] Nowy klaster");
             Console.WriteLine($"[{i + 2}] Usuń klaster");
+            Console.WriteLine($"[{i + 3}] Zmień lokalizację");
             Console.WriteLine("[Q] Wyjdź");
             Console.Write("\nWybierz: ");
 
@@ -402,6 +404,12 @@ public static class ClusterManager
             if (input == $"{i + 2}")
             {
                 DeleteCluster();
+                continue;
+            }
+
+            if (input == $"{i + 3}")
+            {
+                RootPath.ChangePath();
                 continue;
             }
 
