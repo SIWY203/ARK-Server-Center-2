@@ -60,7 +60,7 @@ public static class SteamCmdManager
 
 
 
-    public static void UpdateServer(ClusterServer server)
+    public static void UpdateServer(ClusterServer server, bool isAuto = false)
     {
         if (!File.Exists(SteamCmdExe))
         {
@@ -93,8 +93,42 @@ public static class SteamCmdManager
             "[Info] Jeśli to jest pierwsza instalacja, przed uruchomieniem serwera wielu plików\n" +
             "jeszcze nie ma, więc backupy, konfiguracja na plikach itp, mogą jeszcze nie działać.");
 
-        // czyszczenie bufora, by nie zatrzymywało instalacji
-        while (Console.KeyAvailable) Console.ReadKey(intercept: true);
+        while (Console.KeyAvailable) Console.ReadKey(intercept: true); // czyszczenie bufora
+        if (!isAuto) End(); // nie zamrozi UpdateAllServers()
+    }
+
+
+    public static void UpdateAllServers()
+    {
+        Console.Clear();
+        Warn("Czy napewno chcesz kontynuować?\n" +
+            "Aktualizacja wszystkich serwerów może potrwać BARDZO długo!\n");
+        Console.WriteLine(
+            "[T] Tak, kontynuuj\n" +
+            "[N] Nie, anuluj\n");
+        Console.Write("Wybierz: ");
+        string input = Console.ReadLine() ?? "";
+
+        if (input.ToUpper() != "T") { Console.Clear(); Error("Anulowano."); End(); return; }
+
+        Console.Clear();
+        List<Cluster> clusters = ClusterManager.Clusters;
+        for (int i = 0; i < clusters.Count; i++)
+        {
+            Console.WriteLine();
+            Success($"AKTUALIZACJA SERWERÓW W KLASTRZE: {clusters[i].Name}");
+            for (int j = 0; j < clusters[i].Servers.Count; j++)
+            {
+                UpdateServer(clusters[i].Servers[j], true);
+            }
+        }
+        while (Console.KeyAvailable) Console.ReadKey(intercept: true); // czyszczenie bufora
+
+        Success(
+            "Gotowe!\n" +
+            "+-----------------------------------+\n" +
+            "  Zaktualizowano wszystkie serwery!  \n" +
+            "+-----------------------------------+");
         End();
     }
 
