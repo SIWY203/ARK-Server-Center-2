@@ -9,10 +9,14 @@ public static class ClusterManager
     public static ClusterServer? ActiveServer { get; set; }
     public static bool IsServerSelected => ActiveServer != null;
 
-
     private static string _configFile = "clusters.json";
+
     private static List<Cluster> _clusters = new();
-    public static IReadOnlyList<Cluster> Clusters => _clusters;
+    public static List<Cluster> Clusters
+    {
+        get => _clusters;
+        private set => _clusters = value;
+    }
 
 
     public static void LoadClusters()
@@ -351,25 +355,6 @@ public static class ClusterManager
     }
 
 
-    //public static void RequireServerSelection()
-    //{
-    //    if (IsServerSelected)
-    //    {
-    //        Cluster? cluster = ActiveCluster; // zapis stanu, by nie było nulla
-    //        SelectCluster();
-    //        if (ActiveCluster != null) SelectClusterServer(ActiveCluster);
-    //        else ActiveCluster = cluster;
-    //    }
-
-    //    while (!IsServerSelected)
-    //    {
-    //        SelectCluster();
-    //        if (ActiveCluster != null) SelectClusterServer(ActiveCluster);
-    //        else Environment.Exit(0);
-    //    }
-    //}
-
-
     public static void SelectCluster()
     {
         while (true)
@@ -384,7 +369,7 @@ public static class ClusterManager
             }
             Console.WriteLine($"[{i + 1}] Nowy klaster");
             Console.WriteLine($"[{i + 2}] Usuń klaster");
-            Console.WriteLine($"[{i + 3}] Zmień lokalizację");
+            Console.WriteLine($"[{i + 3}] Ustawienia");
             Console.WriteLine("[Q] Wyjdź");
             Console.Write("\nWybierz: ");
 
@@ -409,7 +394,7 @@ public static class ClusterManager
 
             if (input == $"{i + 3}")
             {
-                RootPath.ChangePath();
+                Program.GlobalSettingsMenu();
                 continue;
             }
 
