@@ -30,6 +30,13 @@ public static class ClusterName
                 Error($"Nazwa {name} jest już używana!");
                 End(); continue;
             }
+            
+            else if (name == Path.GetFileName(SteamCmdManager.SteamCmdDir))
+            {
+                Console.Clear();
+                Error($"Nazwa {name} jest niedozwolona"); // steamcmd
+                End(); continue;
+            }
 
             else if (SafetyChecker.HasInvalidChars(name))
             {
