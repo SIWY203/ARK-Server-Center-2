@@ -15,15 +15,14 @@ public class Program
 
         // -----------------------------
         // TO DO
+        // - [menu klastrów] Ustawienia: Adres IP, Folder główny, Aktualizacja (UpdateAll), Skróty (generator .bat dla serwów)
         //
-        // - globalne IP, jakieś globalne settingi z IP i RootPath?
-        // - UpdateAllServers() - dla wygody
-        //
-        // - MoveCluster() - może użyć FileManager.MoveDirectory()? Potrzebne do ChangeRootPath()
-        // - ChangeRootPath() - przenosi plik json i wszystkie klastry do nowej lokalizacji, aktualizuje RootPath.Value
+        // - Main(args) użyć do uruchomienia danego serwera/serwerów tą aplikacją za pomocą batcha
         //
         // - AddClusterFromFiles() - dodaje do pliku json z obcego folderu
         // - szablony dla ini i launch
+        //
+        // - wersje języczne
         // -----------------------------
 
 
