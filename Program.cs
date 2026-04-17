@@ -1,5 +1,6 @@
 ﻿namespace ArkServerCenter;
 using ArkServerCenter.Clusters;
+using ArkServerCenter.GlobalSettings;
 using static MessageManager;
 
 public class Program
@@ -16,15 +17,16 @@ public class Program
         // -----------------------------
         // TO DO
         //
-        // - globalny adres IP
         // - skróty .bat dla serwerów
         // - język angielski
         //
-        // - AddClusterFromFiles() - dodaje do pliku json z obcego folderu
-        // - szablony dla ini i launch
+        // - AddClusterFromFiles():
+        //   > pliki kopiują się do klastra ale i do rootpath
+        //   > nazwy folderów nie zmieniają się mimo innego portu
         //
+        // - z Main() przenieść kod i zrobić ServerMenu(), BackupMenu() itd + naprawić wychodzenie z serwermenu do listy serwerów a nie klastrów
+        // - szablony dla ini i launch
         // - Main(args) użyć do uruchomienia danego serwera/serwerów tą aplikacją za pomocą batcha
-        // - przenieść wszystkie menu do klasy Menu, uporządkować, może skorzystać z jednego wzorca?
         // -----------------------------
 
 
@@ -81,7 +83,7 @@ public class Program
 
                 case "4":
                     Console.Clear();
-                    SteamCmdManager.UpdateServer(ClusterManager.ActiveServer);
+                    Updater.UpdateServer(ClusterManager.ActiveServer);
                     continue;
 
                 case "Q":
@@ -102,7 +104,6 @@ public class Program
     // ------------------------------
     //  Backup Menu
     // ------------------------------
-
     private static void BackupMenu(ClusterServer server)
     {
         bool isSafeNow = SafetyChecker.IsSafeNow(server.Port);
@@ -118,7 +119,8 @@ public class Program
                 $"[Q] Wróć\n" +
                 $"\n" +
                 $"=========================\n"
-           );
+            );
+            
             Console.Write("Wybierz: ");
             string choice = (Console.ReadLine() ?? "").ToUpper();
             Console.WriteLine();
@@ -158,7 +160,6 @@ public class Program
     // ------------------------------
     //  Server Config Menu
     // ------------------------------
-
     private static void ServerConfigMenu(ClusterServer server)
     {
         bool isSafeNow = SafetyChecker.IsSafeNow(server.Port);
@@ -297,71 +298,10 @@ public class Program
                     End();
                     continue;
             }
-
         }
     }
 
 
-    public static void GlobalSettingsMenu()
-    {
-        while (true)
-        {
-            Console.Clear();
-            Console.WriteLine("========= ARK SERVER CENTER =========");
-            Console.WriteLine("Personalizacja globalnych ustawień\n");
-            Console.WriteLine("[1] Aktualizacja"); 
-            Console.WriteLine("[2] Adres IP");
-            Console.WriteLine("[3] Folder główny");
-            Console.WriteLine("[4] Skróty");
-            Console.WriteLine("[5] Język (lang)");
-            Console.WriteLine("[Q] Wyjdź");
-            Console.Write("\nWybierz: ");
-
-            string? input = Console.ReadLine()?.ToUpper();
-            if (input == "Q")
-            {
-                Console.Clear();
-                ClusterManager.ActiveCluster = null;
-                break; // exit program
-            }
-
-            if (input == "1")
-            {
-                Console.Clear();
-                SteamCmdManager.UpdateAllServers();
-                continue;
-            }
-
-            if (input == "2")
-            {
-                Console.Clear();
-                Console.WriteLine("dostępne wkrótce..."); End();
-                continue;
-            }
-
-            if (input == "3")
-            {
-                Console.Clear();
-                RootPath.ChangePath();
-                continue;
-            }
-
-            if (input == "4")
-            {
-                Console.Clear();
-                Console.WriteLine("dostępne wkrótce..."); End();
-                continue;
-            }
-
-            if (input == "5")
-            {
-                Console.Clear();
-                Console.WriteLine("dostępne wkrótce..."); End();
-                continue;
-            }
-
-        }
-    }
 
 
     // ------------------------------
