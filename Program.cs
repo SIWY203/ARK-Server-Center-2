@@ -17,16 +17,17 @@ public class Program
         // -----------------------------
         // TO DO
         //
-        // - skróty .bat dla serwerów
+        // - dokończyć konfigurację IP
+        // - skróty .bat dla serwerów za pomocą Main(args)?
+        // - import modów (do parametrów startu)
         // - język angielski
         //
-        // - AddClusterFromFiles():
-        //   > pliki kopiują się do klastra ale i do rootpath
-        //   > nazwy folderów nie zmieniają się mimo innego portu
-        //
-        // - z Main() przenieść kod i zrobić ServerMenu(), BackupMenu() itd + naprawić wychodzenie z serwermenu do listy serwerów a nie klastrów
+        // - podpowiedzi dla konsoli arka + puszczanie komend
+        // - ?QueryPort=27015++, ?RCONEnabled=True?RCONPort=27020, lub lepiej 28015
         // - szablony dla ini i launch
-        // - Main(args) użyć do uruchomienia danego serwera/serwerów tą aplikacją za pomocą batcha
+        //
+        // - z Main() przenieść kod i zrobić ServerMenu(), BackupMenu() itd + naprawić wychodzenie z serwer menu do listy serwerów a nie klastrów
+        // - może usprawnić dodawanie klastrów z pliku przez podawanie ręcznie folderu z serwerem itd, potem validacja czy sie zgadza?
         // -----------------------------
 
 
