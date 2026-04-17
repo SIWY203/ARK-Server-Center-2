@@ -1,4 +1,6 @@
 ﻿namespace ArkServerCenter.Clusters;
+
+using ArkServerCenter.GlobalSettings;
 using System.Text.Json;
 using static MessageManager;
 
@@ -34,11 +36,13 @@ public static class ClusterManager
         }
         catch (Exception ex)
         {
+            Console.Clear();
             Error($"Błąd podczas wczytywania pliku:\n{ex.Message}");
             _clusters = new List<Cluster>();
+            End();
         }
 
-        if (_clusters.Count < 1) CreateCluster();
+        if (_clusters.Count < 1) SelectClusterSource();
     }
 
 
@@ -47,6 +51,175 @@ public static class ClusterManager
         var options = new JsonSerializerOptions { WriteIndented = true }; // ładny format
         string jsonString = JsonSerializer.Serialize(_clusters, options);
         File.WriteAllText(_configFile, jsonString);
+    }
+
+
+    // w tej metodzie zawsze przed return usuń tymczasowego newCluster z listy _clusters
+    public static void LoadClusterFromFolder()
+    {
+        Console.Clear();
+        string? path = FileManager.AskForFolderPath("Podaj ścieżkę do klastra");
+        if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) return;
+
+        // 1. cluster name
+        string clusterName = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar));
+        if (Clusters.Select(c => c.Name).ToList().Contains(clusterName))
+        {
+            Error("Nazwa klastra jest już zajęta!");
+            End(); return;
+        }
+        string newClusterPath = Path.Combine(RootPath.Value, clusterName);
+        Cluster newCluster = new Cluster(clusterName);
+        // 2. podfoldery
+        string[] subDirectories = Directory.GetDirectories(path);
+        List<string> oldNames = new(); // do zmiany nazw nowych folderów (nowe porty)
+        foreach (string subDir in subDirectories)
+        {
+            // 3. nazwy podfolderów
+            string folderName = Path.GetFileName(subDir);
+            // 4. nazwy VisibleMap i czy to serwer?
+            if (!folderName.Contains('_') || !Directory.Exists(Path.Combine(subDir, "ShooterGame"))) continue;
+            oldNames.Add(Path.GetFileName(subDir));
+            string[] parts = folderName.Split('_');
+            string mapName = parts[0];
+
+            // 6. przypisz mapę
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine(
+                    $"Wczytano mapę: {mapName} z nazwy folderu. Nazwa kodowa może być inna!\n" +
+                    $"Zazwyczaj różni się tylko dopiskiem \"_WP\", np: TheIsland => TheIsland_WP\n" +
+                    $"Czy nazwa kodowa tej mapy to {mapName}_WP?\n" +
+                    $"\n" +
+                    $"[T] Tak, to jest poprawna nazwa\n" +
+                    $"[N] Nie, przejdź do ręcznej zmiany\n" +
+                    $"[Q] Anuluj");
+                Console.Write("\nWybierz: ");
+                string input = Console.ReadLine()?.Trim()?.ToUpper() ?? "";
+
+                if (input == "T")
+                {
+                    mapName = mapName + "_WP";
+                    break;
+                }
+                if (input == "N")
+                {
+                    while (true)
+                    {
+                        Console.Clear();
+                        Console.WriteLine($"Wpisz \"Q\" aby anulować.\n");
+                        Console.Write("Podaj nazwę kodową mapy: ");
+                        input = Console.ReadLine()?.Trim()?.ToUpper() ?? "";
+                        if (string.IsNullOrWhiteSpace(input))
+                        {
+                            Console.Clear();
+                            Error("Nie podano nazwy mapy!");
+                            End(); continue;
+                        }
+                        if (input == "Q") { if (_clusters.Contains(newCluster)) _clusters.Remove(newCluster); return; }
+                        mapName = input;
+                        break;
+                    }
+                    break;
+                }
+                if (input == "Q") { if (_clusters.Contains(newCluster)) _clusters.Remove(newCluster); return; }
+                else
+                {
+                    Console.Clear();
+                    Error("Nieprawidłowy wybór!");
+                    End();
+                }
+            }
+
+            // 7. przypisz port
+            int? port = ServerPort.AskForServerPort("======== Konfiguracja portów ========");
+            if (port == null) { if (_clusters.Contains(newCluster)) _clusters.Remove(newCluster); return; } // anuluj
+ 
+            // 8. zapisz serwer
+            ClusterServer server = new ClusterServer(mapName, port.Value, newClusterPath);
+            newCluster.Servers.Add(server);
+            if (!_clusters.Contains(newCluster)) _clusters.Add(newCluster); // anti-dupe clusters
+            Success($"Wczytano serwer: {mapName} na porcie {port}");  
+        }
+
+        // 9. finalizacja
+        if (newCluster.Servers.Count > 0)
+        {
+            SaveClusters();
+            Console.Clear();
+            Log("Kopiowanie plików klastra...");
+            FileManager.CopyDirectoryCore(path, newClusterPath);
+            ActiveCluster = newCluster;
+
+            // 10. update nazw folderów na prawidłowe porty
+            for (int i = 0; i < newCluster.Servers.Count; i++)
+            {
+                var server = newCluster.Servers[i];
+                string newFolderName = $"{server.VisibleMap}_{server.Port}";
+                try
+                {
+                    Directory.Move(Path.Combine(server.ClusterRootPath, oldNames[i]), server.ServerRootPath);
+                    string oldBackupPath = Path.Combine(server.ClusterRootPath, "Backups", oldNames[i]);
+                    if (Path.Exists(oldBackupPath)) Directory.Move(Path.Combine(server.ClusterRootPath, "Backups", oldNames[i]), server.BackupsPath);
+                    
+                    string oldConfigPath = Path.Combine(server.ClusterRootPath, oldNames[i] + "_launchArgs.txt");
+                    if (Path.Exists(oldConfigPath))
+                    {
+                        File.Move(oldConfigPath, Path.Combine(server.ClusterRootPath, $"{server.VisibleMap}_{server.Port}_launchArgs.txt"));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Warn($"Nie udało się zmienić nazwy: {ex.Message}");
+                }
+            }
+
+            Success($"Wczytano klaster '{clusterName}' z liczbą serwerów: {newCluster.Servers.Count}");
+        }
+        else
+        {
+            Error("Nie znaleziono poprawnych folderów serwerów w tej lokalizacji.");
+        }
+        while (Console.KeyAvailable) Console.ReadKey(intercept: true); // czyszczenie bufora
+        End();
+    }
+
+
+    public static void SelectClusterSource()
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine(
+                "\n========== Kreator Klastrów ==========\n" +
+                "[1] Stwórz nowy klaster\n" +
+                "[2] Wczytaj klaster z plików\n" +
+                "[Q] Wróć"
+            );
+            Console.Write("\nWybierz: ");
+            string input = Console.ReadLine()?.Trim()?.ToUpper() ?? "";
+
+            switch (input)
+            {
+                case "1":
+                    CreateCluster();
+                    return;
+
+                case "2":
+                    LoadClusterFromFolder();
+                    return;
+
+                case "Q":
+                    return;
+
+                default:
+                    Console.Clear();
+                    Error("Nieprawidłowy wybór!");
+                    End(); continue;
+            }
+        }
+        
     }
 
 
@@ -76,7 +249,7 @@ public static class ClusterManager
         Directory.CreateDirectory(newCluster.ClusterDataPath);
         Directory.CreateDirectory(newServer.ServerRootPath);
 
-        SteamCmdManager.UpdateServer(newServer);
+        Updater.UpdateServer(newServer);
         CreateServer(); // next servers
     }
 
@@ -219,7 +392,7 @@ public static class ClusterManager
                 Directory.CreateDirectory(server.ServerRootPath);
                 SaveClusters();
 
-                SteamCmdManager.UpdateServer(server);
+                Updater.UpdateServer(server);
             }
 
             else
@@ -382,7 +555,7 @@ public static class ClusterManager
 
             if (input == $"{i + 1}")
             {
-                CreateCluster();
+                SelectClusterSource();
                 continue;
             }
 
@@ -394,7 +567,7 @@ public static class ClusterManager
 
             if (input == $"{i + 3}")
             {
-                Program.GlobalSettingsMenu();
+                GlobalSettingsMenu.ShowMenu();
                 continue;
             }
 
@@ -436,7 +609,7 @@ public static class ClusterManager
             Console.Write("\nWybierz: ");
 
             string? input = Console.ReadLine()?.ToUpper();
-            if (input == "Q") break;
+            if (input == "Q") return;
 
             if (input == $"{i + 1}")
             {
@@ -453,9 +626,8 @@ public static class ClusterManager
             if (int.TryParse(input, out int choice) && choice - 1 >= 0 && choice - 1 < cluster.Servers.Count)
             {
                 ClusterServer server = cluster.Servers[choice - 1];
-
-                success = true;
                 ActiveServer = server;
+                success = true;
             }
         }
     }
