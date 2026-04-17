@@ -66,7 +66,7 @@ public static class FileManager
             Console.Write("Wpisz ścieżkę lub przeciągnij folder: ");
             string input = Console.ReadLine()?.Trim() ?? "";
 
-            input = input.Replace("\"", ""); // Upuszczenie może dodać cudzysłowy
+            input = input.Replace("\"", ""); // Upuszczenie dodaje cudzysłowy gdy w ścieżce jest spacja
 
             if (!string.IsNullOrWhiteSpace(input) && Directory.Exists(input))
             {

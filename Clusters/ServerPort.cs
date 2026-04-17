@@ -8,13 +8,13 @@ public static class ServerPort
     {
         int startPort = 7777;
 
-        var cooupiedPorts = ClusterManager.Clusters
+        var occupiedPorts = ClusterManager.Clusters
             .SelectMany(c => c.Servers)
             .Select(s => s.Port)
             .ToHashSet(); // unikalna kolekcja
 
         int candidate = startPort;
-        while (cooupiedPorts.Contains(candidate))
+        while (occupiedPorts.Contains(candidate))
         {
             candidate += 2;
         }
@@ -44,7 +44,7 @@ public static class ServerPort
             {
                 Console.Clear();
                 Console.Write("Zajęte porty: ");
-                foreach (int p in cooupiedPorts)
+                foreach (int p in occupiedPorts)
                 {
                     Console.Write($"{p} ");
                 }
@@ -67,7 +67,7 @@ public static class ServerPort
                         End(); continue;
                     }
 
-                    else if (cooupiedPorts.Contains(userPort))
+                    else if (occupiedPorts.Contains(userPort))
                     {
                         Console.Clear();
                         Error($"Port {userPort} jest zajęty!");
