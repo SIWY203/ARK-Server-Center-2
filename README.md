@@ -26,6 +26,7 @@
 - multi-language support
 - fix IP address settings
 - generating shortcuts to launch a specific server
+- mod management and mod templates
 
 ---
 
