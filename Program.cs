@@ -17,6 +17,7 @@ public class Program
         // -----------------------------
         // TO DO
         //
+        // - kopiowanie zestawu modów na inne serwery
         // - skróty .bat dla serwerów za pomocą Main(args)?
         // - język angielski
         //
