@@ -1,0 +1,211 @@
+﻿namespace ArkServerCenter;
+using ArkServerCenter.Clusters;
+using ArkServerCenter.GlobalSettings;
+using System.Diagnostics;
+using static MessageManager;
+
+
+public class ServerConfig
+{
+    public ClusterServer Server { get; private set; }
+    public List<string> Parameters { get; set; } = new();
+    public List<string> Flags { get; set; } = new();
+    public string AllArgs => string.Join("", Parameters) + " " + string.Join(" ", Flags);
+    public string ConfigPath => Path.Combine(Server.ClusterRootPath, $"{Server.VisibleMap}_{Server.Port}_launchArgs.txt");
+
+    public ServerConfig(ClusterServer server)
+    {
+        Server = server;
+    }
+
+    public static ServerConfig LoadConfig(ClusterServer server)
+    {
+        var config = new ServerConfig(server);
+        if (!File.Exists(config.ConfigPath))
+        {
+            Warn("Brak ustawień rozruchu, tworzenie domyślnych...");
+            config.SetDefaultArgs();
+        }
+        else
+        {
+            var lines = File.ReadAllLines(config.ConfigPath);
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                if (line.StartsWith("?")) config.Parameters.Add(line);
+                else if (line.StartsWith("-")) config.Flags.Add(line);
+            }
+        }
+
+        config.UpdateOrAddArg($"-MultiHome={Address.IpAddress}"); // global IP
+        config.SaveConfig();
+        return config;
+    }
+
+    public void SaveConfig()
+    {
+        var allLines = Parameters.Concat(Flags).ToList();
+        File.WriteAllLines(ConfigPath, allLines);
+    }
+
+    public void SetDefaultArgs()
+    {
+        Parameters = new List<string>()
+        {
+            $"?SessionName={ClusterManager.ActiveCluster?.Name}",
+            $"?Port={Server.Port}",
+            $"?AllowAnyoneBabyImprintCuddle=true",
+            $"?ServerAdminPassword=\"123456\"",
+        };
+
+        Flags = new List<string>()
+        {
+            $"-clusterid={ClusterManager.ActiveCluster?.Name}",
+            $"-ClusterDirOverride=\"{ClusterManager.ActiveCluster?.ClusterDataPath}\"",
+            $"-server",
+            $"-log",
+            $"-MultiHome={Address.IpAddress}",
+            $"-WinLiveMaxPlayers=10",
+            $"-ForceAllowCaveFlyers",
+            $"-NoBattlEye",
+        };
+    }
+
+    public void UpdateOrAddArg(string fullArg)
+    {
+        if (!fullArg.Contains('=')) return;
+
+        // 1. podział na klucz-wartość
+        var parts = fullArg.Split('=', 2); // max 2 substringi (tylko raz)
+        string key = parts[0];
+
+        // 2. szukanie indeksu z odpowiedniej listy
+        List<string> targetList = key.StartsWith("?") ? Parameters : Flags;
+        int index = targetList.FindIndex(f => f.StartsWith(key + "=", StringComparison.OrdinalIgnoreCase));
+
+        // 3. podmiana/dodanie argumentu
+        if (index != -1) targetList[index] = fullArg;
+        else targetList.Add(fullArg);
+    }
+
+
+    //public void RemoveArgument(string arg = "")
+    //{
+    //    arg = arg.Trim();
+    //    if (string.IsNullOrWhiteSpace(arg))
+    //    {
+    //        Console.Clear();
+    //        Error($"Nic nie podano!");
+    //        End(); return;
+    //    }
+    //    if (AllArgs.Contains(arg))
+    //    {
+    //        Parameters.Remove($"?{arg}");
+    //        Flags.Remove($" {arg}");
+    //        Console.Clear();
+    //        Success($"Usunięto {arg}");
+    //    }
+    //    else
+    //    {
+    //        Console.Clear();
+    //        Error($"Nie znaleziono {arg}!");
+    //    }
+    //    Log($"Obecne argumenty rozruchowe: \n\n{AllArgs}\n");
+    //    End();
+    //}
+
+
+    public void CreateConfigBackup()
+    {
+        string? directory = Path.GetDirectoryName(ConfigPath);
+        string? fileName = Path.GetFileName(ConfigPath);
+
+        if (string.IsNullOrEmpty(directory) || string.IsNullOrEmpty(fileName))
+        {
+            Error("Nieprawidłowa ścieżka pliku!");
+            End(); return;
+        }
+
+        string backupDir = Path.Combine(directory, "config_backups");
+        Directory.CreateDirectory(backupDir);
+
+        string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        string backupFile = Path.Combine(backupDir, $"{timestamp}_{fileName}");
+        File.Copy(ConfigPath, backupFile, true);
+
+        Console.Clear();
+        Success($"Uworzono kopię: backup_{timestamp}_{fileName}");
+        End();
+    }
+
+    // public void RestoreConfigBackup() { }
+
+    public static void OpenConfigFile(ServerConfig config)
+    {
+        FileManager.OpenFile(config.ConfigPath);
+    }
+
+    public void ShowConfig()
+    {
+        Log($"Parametry rozruchowe:\n" +
+            $"\n" +
+            $"{Server.Map}{AllArgs}");
+        End();
+    }
+
+    public static void DeleteConfig(ServerConfig config)
+    {
+        if (!string.IsNullOrWhiteSpace(config.ConfigPath))
+        {
+            File.Delete(config.ConfigPath);
+            Success("Usunięto plik konfiguracyjny. Nowy zostanie wygenerowany automatycznie.");
+            End();
+        }
+        else
+        {
+            Error("Usuwanie pliku nie powiodło się!");
+            End();
+        }
+    }
+
+    public static void Launch()
+    {
+        ClusterServer? server = ClusterManager.ActiveServer;
+        Cluster? cluster = ClusterManager.ActiveCluster;
+
+        // null & port handling
+        if (server == null || cluster == null) { Error("ActiveServer = null, lub ActiveCluster = null!"); End(); return; }
+        if (SafetyChecker.IsServerRunningOnPort(server.Port)) { Error("Serwer już jest włączony!"); End(); return; }
+
+        // process info
+        string serverExePath = Path.Combine(server.ServerRootPath, "ShooterGame", "Binaries", "Win64", "ArkAscendedServer.exe");
+        if (!File.Exists(serverExePath)) { Error($"Nie znaleziono pliku serwera: {serverExePath}"); End(); return; }
+
+        var config = LoadConfig(server);
+
+        ProcessStartInfo startInfo = new ProcessStartInfo
+        {
+            FileName = serverExePath,
+            Arguments = server.Map + config.AllArgs,
+            WorkingDirectory = Path.GetDirectoryName(serverExePath),
+            UseShellExecute = true, // serwer w osobnym oknie
+            CreateNoWindow = false
+        };
+
+        try
+        {
+            Process.Start(startInfo);
+        }
+        catch (Exception ex)
+        {
+            Error($"Krytyczny błąd podczas uruchamiania: {ex.Message}");
+            End();
+        }
+
+        Success("Uruchamianie serwera...\n");
+        config.ShowConfig();
+    }
+
+
+}
+

@@ -18,7 +18,6 @@ public class Program
         // TO DO
         //
         // - skróty .bat dla serwerów za pomocą Main(args)?
-        // - import modów (do parametrów startu)
         // - język angielski
         //
         // - podpowiedzi dla konsoli arka + puszczanie komend
@@ -42,10 +41,10 @@ public class Program
             // ------------------------------
             //  Server Menu
             // ------------------------------
-            ServerLauncher.LoadConfig(ClusterManager.ActiveServer); // wczytaj launcher config
+            ServerConfig.LoadConfig(ClusterManager.ActiveServer); // wczytaj launcher config
 
             Console.Clear();
-            SafetyChecker.IsSafeNow(ClusterManager.ActiveServer.Port);
+            bool isSafeNow = SafetyChecker.IsSafeNow(ClusterManager.ActiveServer.Port);
 
             Console.WriteLine(
                 $"\n" +
@@ -70,7 +69,7 @@ public class Program
             {
                 case "1":
                     Console.Clear();
-                    ServerLauncher.Launch();
+                    ServerConfig.Launch();
                     continue;
 
                 case "2":
@@ -175,7 +174,8 @@ public class Program
                $"[1] Parametry rozruchowe\n" +
                $"[2] GameUserSettings.ini\n" +
                $"[3] Game.ini\n" +
-               $"[4] Folder serwera\n" +
+               $"[4] Mody\n" +
+               $"[5] Folder serwera\n" +
                $"[Q] Wróć\n" +
                $"\n" +
                $"==============================\n"
@@ -211,6 +211,17 @@ public class Program
                     continue;
 
                 case "4":
+                    Console.Clear();
+                    if (!isSafeNow)
+                    {
+                        Warn("W tej chwili serwer jest włączony, nie modyfikuj plików!");
+                        End("OK! - Kliknij by przejść dalej... ");
+                    }
+                    var config = ServerConfig.LoadConfig(server);
+                    Mods.ModMenu(config);
+                    continue;
+
+                case "5":
                     Console.Clear();
                     if (!isSafeNow)
                     {
@@ -264,7 +275,7 @@ public class Program
             {
                 case "1":
                     Console.Clear();
-                    ServerLauncher.LoadConfig(server).ShowConfig();
+                    ServerConfig.LoadConfig(server).ShowConfig();
                     continue;
 
                 case "2":
@@ -273,7 +284,7 @@ public class Program
                     { 
                         Warn($"Serwer {server.VisibleMap} ({server.Port}) jest włączony!"); 
                     }
-                    ServerLauncher.OpenConfigFile(ServerLauncher.LoadConfig(server));
+                    ServerConfig.OpenConfigFile(ServerConfig.LoadConfig(server));
                     continue;
 
                 case "3":
@@ -282,12 +293,12 @@ public class Program
                     {
                         Warn($"Serwer {server.VisibleMap} ({server.Port}) jest włączony! Anulowano!"); 
                     }
-                    else ServerLauncher.DeleteConfig(ServerLauncher.LoadConfig(server));
+                    else ServerConfig.DeleteConfig(ServerConfig.LoadConfig(server));
                     continue;
 
                 case "4":
                     Console.Clear();
-                    ServerLauncher.LoadConfig(server).CreateConfigBackup();
+                    ServerConfig.LoadConfig(server).CreateConfigBackup();
                     continue;
 
                 case "Q":
