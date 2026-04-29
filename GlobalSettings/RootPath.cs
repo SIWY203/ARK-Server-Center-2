@@ -88,7 +88,8 @@ public static class RootPath
 
     public static void Setup()
     {
-        while (!IsSet)
+        Load();
+        while (!IsSet || !Directory.Exists(RootPath.Value))
         {
             Console.Clear();
             string? input = FileManager.AskForFolderPath("Aby rozpocząć, trzeba ustawić domyślną główną ścieżkę dla wszystkich klastrów.");
