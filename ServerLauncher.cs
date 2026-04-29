@@ -36,7 +36,7 @@ public class ServerLauncher
                 else if (line.StartsWith("-")) config.Flags.Add(line);
             }
         }
-        // update configs
+        // set global configs
         config.UpdateOrAddArg($"-MultiHome={Address.IpAddress}");
         config.SaveConfig();
         return config;

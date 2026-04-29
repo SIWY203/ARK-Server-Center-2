@@ -14,6 +14,7 @@ public class Address
         Console.WriteLine($"Aktualne IP: {IpAddress}");
         Console.WriteLine("[1] Zmień Adres IP");
         Console.WriteLine("[Q] Wróć");
+		Console.Write("Wybierz: ");
         string input = (Console.ReadLine()?.Trim() ?? "").ToUpper();
         if (input == "1") ChangeIpAddress();
     }
