@@ -7,7 +7,7 @@ using static MessageManager;
 public class Address
 {
 	public static string IpAddress { get; set; } = "127.0.0.1";
-	public static string ConfigPath => Path.Combine(RootPath.Value, "server_ip.txt");
+	public static string ConfigPath => "server_ip.txt";
 
     public static void IpAddressMenu()
 	{

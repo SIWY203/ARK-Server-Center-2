@@ -5,7 +5,7 @@ using static MessageManager;
 
 public static class Mods
 {
-    private static readonly string _namesPath = Path.Combine(GlobalSettings.RootPath.Value, "known_mods_names.json");
+    private static readonly string _namesPath = "known_mods_names.json";
     private static Dictionary<string, string> KnownModsNames { get; set; } = new(); 
     // słownik przechowuje relację ID -> Nazwa (dla celów wizualnych)
 
