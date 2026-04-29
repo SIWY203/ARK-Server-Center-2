@@ -1,5 +1,6 @@
 ﻿namespace ArkServerCenter;
 using ArkServerCenter.Clusters;
+using ArkServerCenter.GlobalSettings;
 using System.Diagnostics;
 using static MessageManager;
 
@@ -24,17 +25,20 @@ public class ServerLauncher
         {
             Warn("Brak ustawień rozruchu, tworzenie domyślnych...");
             config.SetDefaultArgs();
-            config.SaveConfig();
         }
         else
         {
             var lines = File.ReadAllLines(config.ConfigPath);
             foreach (var line in lines)
             {
+                if (string.IsNullOrWhiteSpace(line)) continue;
                 if (line.StartsWith("?")) config.Parameters.Add(line);
                 else if (line.StartsWith("-")) config.Flags.Add(line);
             }
         }
+        // update configs
+        config.UpdateOrAddArg($"-MultiHome={Address.IpAddress}");
+        config.SaveConfig();
         return config;
     }
 
@@ -60,12 +64,30 @@ public class ServerLauncher
             $"-ClusterDirOverride=\"{ClusterManager.ActiveCluster?.ClusterDataPath}\"",
             $"-server",
             $"-log",
-            $"-MultiHome=127.0.0.1",
+            $"-MultiHome={Address.IpAddress}",
             $"-WinLiveMaxPlayers=10",
             $"-ForceAllowCaveFlyers",
             $"-NoBattlEye",
         };
     }
+
+    public void UpdateOrAddArg(string fullArg)
+    {
+        if (!fullArg.Contains('=')) return;
+
+        // 1. podział na klucz-wartość
+        var parts = fullArg.Split('=', 2); // max 2 substringi (tylko raz)
+        string key = parts[0];
+
+        // 2. szukanie indeksu z odpowiedniej listy
+        List<string> targetList = key.StartsWith("?") ? Parameters : Flags;
+        int index = targetList.FindIndex(f => f.StartsWith(key + "=", StringComparison.OrdinalIgnoreCase));
+
+        // 3. podmiana/dodanie argumentu
+        if (index != -1) targetList[index] = fullArg;
+        else targetList.Add(fullArg);
+    }
+
 
     //public void AddArgument(string arg)
     //{

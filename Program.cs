@@ -9,15 +9,14 @@ public class Program
     {
         Console.Title = "Ark Server Center";
 
-        RootPath.Load();
-        RootPath.Setup(); // if path is not set
+        RootPath.Setup();
+        Address.LoadIPAddress();
         ClusterManager.LoadClusters();
 
 
         // -----------------------------
         // TO DO
         //
-        // - dokończyć konfigurację IP
         // - skróty .bat dla serwerów za pomocą Main(args)?
         // - import modów (do parametrów startu)
         // - język angielski
@@ -43,14 +42,16 @@ public class Program
             // ------------------------------
             //  Server Menu
             // ------------------------------
+            ServerLauncher.LoadConfig(ClusterManager.ActiveServer); // wczytaj launcher config
+
             Console.Clear();
-            bool isSafeNow = SafetyChecker.IsSafeNow(ClusterManager.ActiveServer.Port);
+            SafetyChecker.IsSafeNow(ClusterManager.ActiveServer.Port);
 
             Console.WriteLine(
                 $"\n" +
                 $"============ Menu Serwera ===========\n" +
                 $"Klaster: {ClusterManager.ActiveCluster.Name}, Mapa: {ClusterManager.ActiveServer.Map} \n" +
-                $"Port: {ClusterManager.ActiveServer.Port}\n" +
+                $"IP: {Address.IpAddress} Port: {ClusterManager.ActiveServer.Port}\n" +
                 $"\n" +
                 $"[1] Uruchom serwer\n" +
                 $"[2] Backupy i przywracanie\n" +

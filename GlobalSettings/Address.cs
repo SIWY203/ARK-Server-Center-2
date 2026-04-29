@@ -1,10 +1,13 @@
 ﻿namespace ArkServerCenter.GlobalSettings;
+
+using ArkServerCenter.Clusters;
 using System.Net;
 using static MessageManager;
 
 public class Address
 {
 	public static string IpAddress { get; set; } = "127.0.0.1";
+	public static string ConfigPath => Path.Combine(RootPath.Value, "server_ip.txt");
 
     public static void IpAddressMenu()
 	{
@@ -23,7 +26,7 @@ public class Address
 			End(); return;
 		}
 
-        Console.WriteLine("========== Zmiana adresu IP ==========\n");
+        Console.Clear();
         Console.WriteLine($"Aktualne IP: {IpAddress}");
         Console.WriteLine($"Ustaw nowy adres, dla serwerów ARK\n");
         Console.Write("Podaj: ");
@@ -31,18 +34,47 @@ public class Address
             
 		if (string.IsNullOrWhiteSpace(input))
 		{
+			Console.Clear();
             Error("Nie podano żadnej wartości!");
 			End(); return;
 		}
 
 		if (!IPAddress.IsValid(input))
 		{
-			Error("Nieprawidłowy adres IP!");
+            Console.Clear();
+            Error("Nieprawidłowy adres IP!");
 			End(); return;
 		}
 
 		IpAddress = input;
-		Success($"Ustawiono nowe IP: {input}");
-		End(); return;
+		SaveIPAddress(IpAddress);
 	}
+
+    public static void LoadIPAddress()
+    {
+        if (!File.Exists(ConfigPath)) File.WriteAllText(ConfigPath, "127.0.0.1");
+
+        string ip = File.ReadAllText(ConfigPath).Trim();
+        IpAddress = string.IsNullOrWhiteSpace(ip) ? "127.0.0.1" : ip;
+    }
+
+    public static void SaveIPAddress(string ip)
+	{
+		if (!IPAddress.IsValid(ip))
+		{
+			Console.Clear();
+			Error("To nie jest poprawny adres IP!");
+			End(); return;
+		}
+		else
+		{
+			File.WriteAllText(ConfigPath, ip);
+            Console.Clear();
+            Success($"Zapisano nowe IP: {ip}");
+			End(); return;
+        }
+    }
+
+
+
 }
