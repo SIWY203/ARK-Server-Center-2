@@ -1,5 +1,5 @@
 # ARK Server Center 2.0
-*Important info! *At the moment the application only supports Polish language*
+***Important info!** At the moment the application only supports Polish language*
 ### **Support for multi-server clusters**
 - creating and deleting entire clusters
 - SteamCMD installation and update
@@ -38,4 +38,4 @@
 <a href="https://github.com/SIWY203/ARK-Server-Center">ARK Server Center</a>
 - manual files backups and restoring
 - open GameUserSettings.ini and Game.ini
-- <b> single server suport only!
+- **single server suport only!**
