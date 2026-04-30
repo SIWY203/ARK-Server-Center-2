@@ -1,4 +1,5 @@
 # ARK Server Center 2.0
+*Important info! *At the moment the application only supports Polish language*
 ### **Support for multi-server clusters**
 - creating and deleting entire clusters
 - SteamCMD installation and update
