@@ -17,6 +17,7 @@ public class Program
         // -----------------------------
         // TO DO
         //
+        // - Mods.cs przerobić zgodnie z D.R.Y.
         // - kopiowanie zestawu modów na inne serwery
         // - skróty .bat dla serwerów za pomocą Main(args)?
         // - język angielski

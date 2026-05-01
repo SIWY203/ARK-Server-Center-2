@@ -1,5 +1,5 @@
 ﻿namespace ArkServerCenter;
-
+using ArkServerCenter.Clusters;
 using System.Text.Json;
 using static MessageManager;
 
@@ -35,11 +35,11 @@ public static class Mods
 
         while (true)
         {
-            // wyciągnięcie modów z configu
+            // wyciągnięcie listy modów z configu serwera
             string modsFlag = config.Flags.FirstOrDefault(f => f.StartsWith("-Mods=", StringComparison.OrdinalIgnoreCase)) ?? "-Mods=";
             string idsString = modsFlag.Replace("-Mods=", "").Trim();
 
-            // zamiana stringa na listę
+            // lista aktywnych modów (ID) dla aktywnego serwera
             List<string> activeModIds = string.IsNullOrWhiteSpace(idsString)
                 ? new List<string>()
                 : idsString.Split(',').ToList();
@@ -77,6 +77,7 @@ public static class Mods
                 string id = Console.ReadLine()?.Trim() ?? "";
                 Console.Write("Podaj nazwę (opcjonalnie): ");
                 string name = Console.ReadLine()?.Trim() ?? "";
+
                 if (string.IsNullOrWhiteSpace(name)) name = "Nieznany mod";
 
                 if (string.IsNullOrWhiteSpace(id))
@@ -84,17 +85,46 @@ public static class Mods
                     Console.Clear(); Error("Nie dodano moda!"); End(); continue;
                 }
 
-                // dodawanie do słownika i na listę aktywnych
-                KnownModsNames[id] = name;
-                SaveNames();
+                Console.Clear();
+                Console.Write(
+                    "Czy dodać tego moda również do pozostałych serwerów w klastrze?\n" +
+                    "[T] Tak\n" +
+                    "[N] Nie\n");
+                Console.Write("Wybierz: ");
+                bool sync = Console.ReadLine()?.ToUpper().Trim() == "T";
 
-                activeModIds.Add(id);
+                // dodawanie moda, jeśli go tam nie ma
+                if (!activeModIds.Contains(id))
+                {
+                    activeModIds.Add(id);
+                    config.UpdateOrAddArg($"-Mods={string.Join(",", activeModIds)}");
+                    config.SaveConfig();
+                }
 
-                // Aktualizujemy config i zapisujemy zmiany
-                config.UpdateOrAddArg($"-Mods={string.Join(",", activeModIds)}");
-                config.SaveConfig();
+                if (sync)
+                {
+                    foreach (var s in ClusterManager.ActiveCluster?.Servers ?? new())
+                    {
+                        if (s.Port == config.Server.Port) continue;
 
-                Console.Clear(); Success("Dodano moda i zapisano konfigurację!"); 
+                        ServerConfig otherConfig = ServerConfig.LoadConfig(s);
+                        string otherModsFlag = otherConfig.Flags.FirstOrDefault(f => f.StartsWith("-Mods=", StringComparison.OrdinalIgnoreCase)) ?? "-Mods=";
+                        List<string> otherIds = otherModsFlag.Replace("-Mods=", "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                        if (!otherIds.Contains(id))
+                        {
+                            otherIds.Add(id);
+                            otherConfig.UpdateOrAddArg($"-Mods={string.Join(",", otherIds)}");
+                            otherConfig.SaveConfig();
+                        }
+                    }
+                }
+
+                // dodawanie moda do listy znanych modów
+                KnownModsNames[id] = name;  // dictionary
+                SaveNames();                // json file
+                Console.Clear(); 
+                Success("Zaktualizowano modyfikacje!"); 
                 End();
             }
 
@@ -113,14 +143,47 @@ public static class Mods
 
                 if (int.TryParse(Console.ReadLine(), out int index) && index > 0 && index <= activeModIds.Count)
                 {
-                    activeModIds.RemoveAt(index - 1);
+                    // pobieranie ID
+                    string idToRemove = activeModIds[index - 1];
+
+                    Console.Clear();
+                    Console.Write(
+                        "Czy usunąć tego moda również z pozostałych serwerów w klastrze?\n" +
+                        "[T] Tak\n" +
+                        "[N] Nie\n");
+                    bool syncDeleting = Console.ReadLine()?.ToUpper().Trim() == "T";
+
+                    // usuwanie z bieżącego obiektu
+                    activeModIds.Remove(idToRemove);
                     config.UpdateOrAddArg($"-Mods={string.Join(",", activeModIds)}");
                     config.SaveConfig();
 
-                    Console.Clear(); Success("Usunięto moda i zaktualizowano konfigurację!"); 
+                    // usuwanie z pozostałych serwerów
+                    if (syncDeleting)
+                    {
+                        foreach (var s in ClusterManager.ActiveCluster?.Servers ?? new())
+                        {
+                            if (s.Port == config.Server.Port) continue;
+
+                            ServerConfig otherConfig = ServerConfig.LoadConfig(s);
+                            string otherModsFlag = otherConfig.Flags.FirstOrDefault(f => f.StartsWith("-Mods=", StringComparison.OrdinalIgnoreCase)) ?? "-Mods=";
+                            List<string> otherIds = otherModsFlag.Replace("-Mods=", "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                            if (otherIds.Contains(idToRemove))
+                            {
+                                otherIds.Remove(idToRemove);
+                                otherConfig.UpdateOrAddArg($"-Mods={string.Join(",", otherIds)}");
+                                otherConfig.SaveConfig();
+                            }
+                        }
+                    }
+
+                    Console.Clear();
+                    Success("Usunięto moda!");
                     End();
                 }
             }
+
         }
     }
 }
