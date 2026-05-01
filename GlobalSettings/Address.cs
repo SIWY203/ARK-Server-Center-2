@@ -32,7 +32,7 @@ public class Address
         Console.WriteLine($"Ustaw nowy adres, dla serwerów ARK\n");
         Console.Write("Podaj: ");
         string input = (Console.ReadLine()?.Trim() ?? "").ToUpper();
-            
+        
 		if (string.IsNullOrWhiteSpace(input))
 		{
 			Console.Clear();
